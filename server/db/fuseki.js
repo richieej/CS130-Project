@@ -4,10 +4,6 @@ Fuseki server API wrapper/proxy
 const http = require('http');
 
 const logger = require('./logger.js');
-const prefix = `
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-`
 
 class FusekiProxy {
     constructor(dataset_name, hostname = "localhost", port = 3030) {
@@ -17,7 +13,7 @@ class FusekiProxy {
     }
 
     async test_connection() {
-        const data = await this._submit_query(`
+        const data = await this.read_data(`
             SELECT ?subject ?predicate ?object
             WHERE {
                 ?subject ?predicate ?object
@@ -29,13 +25,48 @@ class FusekiProxy {
         return false;
     }
 
+    async write_data(query) {
+        const options = {
+            hostname: this.hostname,
+            port: this.port,
+            path: `/${this.dataset_name}/update`,
+            method: 'POST',
+            headers: {
+              'Content-Type': `application/sparql-update`
+            }
+        }
+
+        return await new Promise((resolve, reject) => {
+            const req = http.request(options, (res) => {
+                if (res.statusCode < 200 || res.statusCode >= 300) {
+                    logger.error(`SPARQL query ended with bad status code: ${res.statusCode}`);
+                    reject(new Error('Fuseki Error'));
+                }
+                else{
+                    resolve(true);
+                }
+            });
+        
+            // reject on request error
+            req.on('error', err => {
+                reject(err);
+            });
+            if (query) {
+                logger.info(`Starting SPARQL query: '${query}'`);
+                req.write(query);
+            }
+
+            req.end();
+        });
+    }
 
     /**
      * Submit a SPARQL query to the Fuseki database
      * @param {string} query 
+     * @param {function(data, resolve, reject)} on_end
      * @returns {Promise}
      */
-    _submit_query(query) {
+    async read_data(query) {
         const options = {
             hostname: this.hostname,
             port: this.port,
@@ -43,11 +74,11 @@ class FusekiProxy {
             method: 'POST',
             headers: {
               'Accept': 'application/json',
-              'Content-Type': 'application/sparql-query'
+              'Content-Type': `application/sparql-query`
             }
         }
 
-        return new Promise((resolve, reject) => {
+        return await new Promise((resolve, reject) => {
             const req = http.request(options, (res) => {
                 if (res.statusCode < 200 || res.statusCode >= 300) {
                     logger.error(`SPARQL query ended with bad status code: ${res.statusCode}`);
