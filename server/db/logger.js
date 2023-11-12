@@ -1,0 +1,15 @@
+const pino = require('pino');
+
+const logger = pino({
+    level: 'debug',
+    transport: {
+        target: 'pino-pretty',
+        options: {
+            colorize: true
+        }
+    },    
+});
+
+logger.info("Start of Log");
+
+module.exports = logger;
