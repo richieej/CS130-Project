@@ -40,7 +40,7 @@ class FusekiProxy {
             const req = http.request(options, (res) => {
                 if (res.statusCode < 200 || res.statusCode >= 300) {
                     logger.error(`SPARQL query ended with bad status code: ${res.statusCode}`);
-                    reject(new Error('Fuseki Error'));
+                    resolve(false);
                 }
                 else{
                     resolve(true);

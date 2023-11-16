@@ -50,7 +50,6 @@ test('Write and read to Fuseki database', async () => {
         const write_result = await fuseki.write_data(write_test);
         expect(write_result).toBe(true);
         const read_result = await fuseki.read_data(read_test);
-        console.log(read_result)
         expect(read_result).toBeTruthy();
         expect(read_result.headers).toStrictEqual(["name", "schoolName"]);
         expect(read_result.data).toBeTruthy();
@@ -65,5 +64,53 @@ test('Write and read to Fuseki database', async () => {
         expect(read_result).toBeTruthy();
         expect(read_result.headers).toStrictEqual(["name", "schoolName"]);
         expect(read_result.data).toStrictEqual([]);
+    }
+});
+
+test('Write query with bad syntax returns false and no change', async () => {
+    const write_test = `
+        PREFIX eql: <http://excql.org/relations/#>
+        INSERT DATA
+        {
+            <http://students/GeneBlock>
+                eql:name "Gene Block";
+                eql:school <http://schools/UCLA> 
+            <http://schools/UCLA>
+                eql:name "University of California - Los Angeles" 
+        }
+    `; // missing '.' at end of rows
+
+    const read_test = `
+        PREFIX eql: <http://excql.org/relations/#>
+        SELECT ?name ?schoolName
+        WHERE {
+            ?student eql:school ?school.
+            ?student eql:name ?name.
+            ?school eql:name ?schoolName.
+            FILTER (?name="Gene Block").
+        }
+    `;
+
+    const delete_test = `
+        PREFIX eql: <http://excql.org/relations/#>
+        DELETE DATA
+        {
+            <http://students/GeneBlock>
+                eql:name "Gene Block";
+                eql:school <http://schools/UCLA> .
+            <http://schools/UCLA>
+                eql:name "University of California - Los Angeles" .
+        }
+    `;
+
+    try {
+        const write_result = await fuseki.write_data(write_test);
+        expect(write_result).toBe(false);
+        const read_result = await fuseki.read_data(read_test);
+        expect(read_result).toBeTruthy();
+        expect(read_result.data).toStrictEqual([]);
+    } finally {
+        const delete_result = await fuseki.write_data(delete_test);
+        expect(delete_result).toBe(true);
     }
 });
