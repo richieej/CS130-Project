@@ -7,6 +7,7 @@ import Landing from "./components/landing";
 import RecordList from "./components/recordList";
 import Edit from "./components/edit";
 import Create from "./components/create";
+import Login from "./components/login";
 
  const App = () => {
  return (
@@ -15,6 +16,7 @@ import Create from "./components/create";
      <Routes>
        <Route exact path="/" element={<RecordList />} />
        <Route path = "/landing" element={<Landing/>} />
+       <Route path = "/login" element={<Login/>} />
        <Route path="/edit/:id" element={<Edit />} />
        <Route path="/create" element={<Create />} />
      </Routes>

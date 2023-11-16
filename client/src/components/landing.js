@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from 'react-router-dom';
 import styled from 'styled-components'
 
 const Logo = styled.h1`
@@ -31,8 +32,12 @@ export default function Landing() {
         <div>
             <Logo>EXCQL</Logo>
             <ButtonContainer>
-                <Button> Login </Button>
-                <Button> New User </Button>
+                <Link to = "/login">
+                    <Button> Login </Button>
+                </Link>
+                <Link to = "/signup">
+                    <Button> New User </Button>
+                </Link>
             </ButtonContainer>
         </div>
     );
