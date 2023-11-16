@@ -39,17 +39,26 @@ class FusekiProxy {
         return await new Promise((resolve, reject) => {
             const req = http.request(options, (res) => {
                 if (res.statusCode < 200 || res.statusCode >= 300) {
-                    logger.error(`SPARQL query ended with bad status code: ${res.statusCode}`);
-                    resolve(false);
+                    logger.error(`SPARQL write query ended with bad status code: ${res.statusCode}`);
+                    resolve({
+                        error: `Bad status code ${res.statusCode}`,
+                        results: false
+                    });
                 }
                 else{
-                    resolve(true);
+                    resolve({
+                        error: undefined,
+                        results: true
+                    });
                 }
             });
         
             // reject on request error
             req.on('error', err => {
-                reject(err);
+                resolve({
+                    error: err,
+                    results: false
+                });
             });
             if (query) {
                 logger.info(`Starting SPARQL query: '${query}'`);
@@ -81,24 +90,30 @@ class FusekiProxy {
         const data = await new Promise((resolve, reject) => {
             const req = http.request(options, (res) => {
                 if (res.statusCode < 200 || res.statusCode >= 300) {
-                    logger.error(`SPARQL query ended with bad status code: ${res.statusCode}`);
-                    reject(new Error('Fuseki Error'));
+                    logger.error(`SPARQL read query ended with bad status code: ${res.statusCode}`);
+                    resolve({
+                        error: `Bad status code: ${res.statusCode}`
+                    });
                 }
-                var data = [];
-                res.on('data', chunk => {
-                    data.push(chunk);
-                });
-                res.on('end', () => {
-                    const query_result = JSON.parse(data[0]);
-                    logger.info('Finished SPARQL query');
-                    logger.debug(`Got SPARQL response: '${JSON.stringify(query_result)}'`);
-                    resolve(query_result);
-                });
+                else {
+                    var data = [];
+                    res.on('data', chunk => {
+                        data.push(chunk);
+                    });
+                    res.on('end', () => {
+                        const query_result = JSON.parse(data[0]);
+                        logger.info('Finished SPARQL query');
+                        logger.debug(`Got SPARQL response: '${JSON.stringify(query_result)}'`);
+                        resolve(query_result);
+                    });
+                }
             });
         
             // reject on request error
             req.on('error', err => {
-                reject(err);
+                resolve({
+                    error: err
+                });
             });
             if (query) {
                 logger.info(`Starting SPARQL query: '${query}'`);
@@ -110,8 +125,9 @@ class FusekiProxy {
 
         return {
             headers: data.head ? data.head.vars : [],
-            data: data.results ? data.results.bindings : []
-        }
+            data: data.results ? data.results.bindings : [],
+            error: data.error
+        };
     }
 }
 
