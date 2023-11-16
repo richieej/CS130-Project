@@ -52,18 +52,18 @@ test('Write and read to Fuseki database', async () => {
         const read_result = await fuseki.read_data(read_test);
         console.log(read_result)
         expect(read_result).toBeTruthy();
-        expect(read_result.results).toBeTruthy();
-        expect(read_result.results.bindings).toBeTruthy();
-        expect(read_result.results.bindings[0].name).toBeTruthy();
-        expect(read_result.results.bindings[0].schoolName).toBeTruthy();
-        expect(read_result.results.bindings[0].name.value).toBe("Joe Bruin");
-        expect(read_result.results.bindings[0].schoolName.value).toBe("University of California - Los Angeles");
+        expect(read_result.headers).toStrictEqual(["name", "schoolName"]);
+        expect(read_result.data).toBeTruthy();
+        expect(read_result.data[0].name).toBeTruthy();
+        expect(read_result.data[0].schoolName).toBeTruthy();
+        expect(read_result.data[0].name.value).toBe("Joe Bruin");
+        expect(read_result.data[0].schoolName.value).toBe("University of California - Los Angeles");
     } finally {
         const delete_result = await fuseki.write_data(delete_test);
         expect(delete_result).toBeTruthy();
         const read_result = await fuseki.read_data(read_test);
         expect(read_result).toBeTruthy();
-        expect(read_result.results).toBeTruthy();
-        expect(read_result.results.bindings).toStrictEqual([]);
+        expect(read_result.headers).toStrictEqual(["name", "schoolName"]);
+        expect(read_result.data).toStrictEqual([]);
     }
 });

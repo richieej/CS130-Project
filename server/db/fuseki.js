@@ -78,7 +78,7 @@ class FusekiProxy {
             }
         }
 
-        return await new Promise((resolve, reject) => {
+        const data = await new Promise((resolve, reject) => {
             const req = http.request(options, (res) => {
                 if (res.statusCode < 200 || res.statusCode >= 300) {
                     logger.error(`SPARQL query ended with bad status code: ${res.statusCode}`);
@@ -91,7 +91,7 @@ class FusekiProxy {
                 res.on('end', () => {
                     const query_result = JSON.parse(data[0]);
                     logger.info('Finished SPARQL query');
-                    logger.debug(`Got SPARQL response: '${query_result}'`);
+                    logger.debug(`Got SPARQL response: '${JSON.stringify(query_result)}'`);
                     resolve(query_result);
                 });
             });
@@ -107,6 +107,11 @@ class FusekiProxy {
 
             req.end();
         });
+
+        return {
+            headers: data.head ? data.head.vars : [],
+            data: data.results ? data.results.bindings : []
+        }
     }
 }
 
