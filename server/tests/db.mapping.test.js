@@ -38,9 +38,16 @@ describe('Mapping read and write', () => {
         );
         expect(create_result.uuid).toBeTruthy();
         expect(create_result.err).toBeFalsy();
+        
         const all_mappings_result = await mapDB.get_all_mappings();
         expect(all_mappings_result).toContainEqual(expect.objectContaining({
             uuid: create_result.uuid
         }));
+
+        const mapping = await mapDB.get_mapping_by_uuid(create_result.uuid);
+        expect(mapping).toBeDefined();
+        expect(mapping.name).toEqual("test_mapping");
+        expect(mapping.owner_uuid).toEqual("PLACEHOLDER_OWNER_UUID");
+        expect(mapping.uuid).toEqual(create_result.uuid);
     });
 });
