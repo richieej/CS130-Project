@@ -64,17 +64,49 @@ const UpdateButton = styled.button `
     margin: 20px 35px;
 `
 
+const MatchBox = styled.div`
+    padding: 10px;
+    max-height: 80%;
+    overflow-y: auto;
+`
+
 const MatchRow = styled.div`
     padding: 10px;
 `
 
-// TODO: conditionally render 2 columns of dropdowns with N rows (for N sheets in Excel file)
-// TOOD: render first dropdown with available mappings
-// TOOD: conditionally render second dropdown to have sheet names
-
 const UpdateKnowledgeBase = () => {
     const [file, setFile] = useState(null)
     const [sheets, setSheets] = useState([])
+    const [mappings, setMappings] = useState([])
+
+    const tempData = [
+        {mapping: "SELECT * FROM table1"},
+        {mapping: "SELECT * FROM table2"},
+        {mapping: "SELECT * FROM table3"},
+        {mapping: "SELECT * FROM table4"},
+        {mapping: "SELECT * FROM table5"},
+        {mapping: "SELECT * FROM table6"},
+        {mapping: "SELECT * FROM table7 SELECT * FROM table7"},
+        {mapping: "SELECT * FROM table8"},
+        {mapping: "SELECT * FROM table9 SELECT * FROM table9"},
+        {mapping: "SELECT * FROM table10"},
+        {mapping: "SELECT * FROM table11"},
+        {mapping: "SELECT * FROM table12"},
+    ]
+
+    useEffect(() => {
+        // const fetchData = async () => {
+        //     try {
+        //     const response = await fetch('http://localhost:8080/mappings');
+        //     const result = await response.json();
+        //     setData(result.items); 
+        //     } catch (error) {
+        //     console.error('Error fetching data:', error);
+        //     }
+        // };
+        // fetchData();
+        setMappings(tempData)
+    }, []); // empty dependency array ensures that this effect runs once when the component mounts
 
     function onFileChange(event) {
         // Update the state
@@ -143,21 +175,34 @@ const UpdateKnowledgeBase = () => {
                     </Box>
                     <Box> 
                         <p> 2. Match Mappings with Excel Sheets </p>
-                        {sheets.map((idx) => (
-                            <MatchRow key={idx}>
-                                <label>
-                                    <select>
-                                        <option value="">Select a sheet</option>
-                                        {/* Dynamically generate options based on sheet names */}
-                                        {sheets.map((name, index) => (
-                                            <option key={index} value={name}>
-                                                {name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </label>
-                            </MatchRow>
-                        ))}
+                        <MatchBox>
+                            {sheets.map((idx) => (
+                                <MatchRow key={idx}>
+                                    <label>
+                                        <select>
+                                            <option value="">Select a sheet</option>
+                                            {/* Dynamically generate options based on sheet names */}
+                                            {sheets.map((name, index) => (
+                                                <option key={index} value={name}>
+                                                    {name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <select>
+                                            <option value="">Select a mapping</option>
+                                            {/* Generate options based on mappings */}
+                                            {mappings.map((value, index) => (
+                                                <option key={index} value={value}>
+                                                    {value.mapping}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                </MatchRow>
+                            ))}
+                        </MatchBox>
                     </Box>
                 </RightHalf>
             </Grid>

@@ -19,22 +19,22 @@ const Header = styled.h1 `
 `
 
 const MappingList = () => {
-    const tempData = [
-        {mapping: "SELECT * FROM table1"},
-        {mapping: "SELECT * FROM table2"},
-        {mapping: "SELECT * FROM table3"},
-        {mapping: "SELECT * FROM table4"},
-        {mapping: "SELECT * FROM table5"},
-        {mapping: "SELECT * FROM table6"},
-        {mapping: "SELECT * FROM table7 SELECT * FROM table7"},
-        {mapping: "SELECT * FROM table8"},
-        {mapping: "SELECT * FROM table9 SELECT * FROM table9"},
-        {mapping: "SELECT * FROM table10"},
-        {mapping: "SELECT * FROM table11"},
-        {mapping: "SELECT * FROM table12"},
-    ]
-    
     const [data, setData] = useState([]);
+
+    const tempData = [
+      {mapping: "SELECT * FROM table1"},
+      {mapping: "SELECT * FROM table2"},
+      {mapping: "SELECT * FROM table3"},
+      {mapping: "SELECT * FROM table4"},
+      {mapping: "SELECT * FROM table5"},
+      {mapping: "SELECT * FROM table6"},
+      {mapping: "SELECT * FROM table7 SELECT * FROM table7"},
+      {mapping: "SELECT * FROM table8"},
+      {mapping: "SELECT * FROM table9 SELECT * FROM table9"},
+      {mapping: "SELECT * FROM table10"},
+      {mapping: "SELECT * FROM table11"},
+      {mapping: "SELECT * FROM table12"},
+    ]
 
     useEffect(() => {
         // const fetchData = async () => {
