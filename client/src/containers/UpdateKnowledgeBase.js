@@ -68,7 +68,8 @@ const UpdateButton = styled.button `
 // TOOD: conditionally render second dropdown to have sheet names
 
 const UpdateKnowledgeBase = () => {
-    const [file, setFile] = useState()
+    const [file, setFile] = useState(null)
+    const [sheets, setSheets] = useState([])
 
     function onFileChange(event) {
         // Update the state
@@ -93,9 +94,12 @@ const UpdateKnowledgeBase = () => {
 
             // Use xlsx to parse the Excel content
             const workbook = XLSX.read(data);
+            const names = workbook.SheetNames;
+            setSheets(workbook.SheetNames);
             // const sheetName = workbook.SheetNames[0];
             // const worksheet = workbook.Sheets[sheetName];
             console.log(workbook)
+            console.log(names)
         };
         reader.readAsArrayBuffer(file);
         
