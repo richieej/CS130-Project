@@ -7,8 +7,7 @@ import UpdateKnowledgeBase from "./containers/UpdateKnowledgeBase"
 
  const App = () => {
  return (
-   <div className="app" style={{ backgroundColor: "#f0ada8", height: "100vh"}}>
-
+   <div className="app">
      <Routes>
        <Route exact path="/" element={<Landing />} />
        <Route path = "/login" element={<Login/>} />

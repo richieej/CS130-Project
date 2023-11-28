@@ -3,7 +3,7 @@ import styled from 'styled-components'
 
 
 const ScrollableContainer = styled.div`
-    max-height: 90vh;
+    max-height: 90%;
     max-width: 100%;
     width: 40vw;
     overflow-y: auto;
