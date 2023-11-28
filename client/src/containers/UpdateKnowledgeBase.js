@@ -16,16 +16,17 @@ const RightHalf = styled.div`
     display: grid;
     grid-template-rows: 1fr 3fr;
     row-gap: 2em;
-    div {
-        padding: 15px;
-        border: 5px solid white;
-        font-family: 'Concert One', sans-serif;
-        font-size: 30px;
-    }
     p {
         padding: 10px;
         margin: 0;
     }
+`
+
+const Box = styled.div`
+    padding: 15px;
+    border: 5px solid white;
+    font-family: 'Concert One', sans-serif;
+    font-size: 30px;
 `
 
 const MappingsContainer = styled.div`
@@ -61,6 +62,10 @@ const UpdateButton = styled.button `
     cursor: pointer;
     float: right;
     margin: 20px 35px;
+`
+
+const MatchRow = styled.div`
+    padding: 10px;
 `
 
 // TODO: conditionally render 2 columns of dropdowns with N rows (for N sheets in Excel file)
@@ -125,7 +130,7 @@ const UpdateKnowledgeBase = () => {
                     <MappingList/>
                 </MappingsContainer>
                 <RightHalf>
-                    <div> 
+                    <Box> 
                         <p> 1. Upload Excel File </p> 
                         <input 
                             type="file"
@@ -135,10 +140,25 @@ const UpdateKnowledgeBase = () => {
                             onChange={onFileChange}
                         />
                         <button onClick={onFileUpload}>Upload</button>
-                    </div>
-                    <div> 
+                    </Box>
+                    <Box> 
                         <p> 2. Match Mappings with Excel Sheets </p>
-                    </div>
+                        {sheets.map((idx) => (
+                            <MatchRow key={idx}>
+                                <label>
+                                    <select>
+                                        <option value="">Select a sheet</option>
+                                        {/* Dynamically generate options based on sheet names */}
+                                        {sheets.map((name, index) => (
+                                            <option key={index} value={name}>
+                                                {name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                            </MatchRow>
+                        ))}
+                    </Box>
                 </RightHalf>
             </Grid>
             <UpdateButton> Update </UpdateButton>
