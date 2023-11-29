@@ -73,7 +73,7 @@ const MatchBox = styled.div`
 const MatchRow = styled.div`
     padding: 10px;
 `
-
+// TODO Store the sheet to mapping pairs somewhere
 const UpdateKnowledgeBase = () => {
     const [file, setFile] = useState(null)
     const [sheets, setSheets] = useState([])
@@ -154,6 +154,26 @@ const UpdateKnowledgeBase = () => {
         // });
     };
 
+    function handleMapSelect(event) {
+        // setSelectedValues((prevSelectedValues) => ({
+        //   ...prevSelectedValues,
+        //   [sheetName]: value,
+        // }));
+        // console.log(sheetName, value);
+        const selectedValue = event.target.value;
+        console.log('Selected Mapping:', selectedValue);
+    }
+
+    function handleSheetSelect(event) {
+        // setSelectedValues((prevSelectedValues) => ({
+        //   ...prevSelectedValues,
+        //   [sheetName]: value,
+        // }));
+        // console.log(sheetName, value);
+        const selectedValue = event.target.value;
+        console.log('Selected Sheet:', selectedValue);
+    }
+
     return (
         <div style={{ height: "fit-content"}}>
             <PageHeader title={"Update Knowledge Base"} />
@@ -178,24 +198,34 @@ const UpdateKnowledgeBase = () => {
                         <MatchBox>
                             {sheets.map((idx) => (
                                 <MatchRow key={idx}>
-                                    <label>
-                                        <select>
+                                    <label htmlFor="sheets">
+                                        <select name="sheets" id="mappings" 
+                                            onChange={handleSheetSelect} 
+                                            required
+                                        >
                                             <option value="">Select a sheet</option>
                                             {/* Dynamically generate options based on sheet names */}
-                                            {sheets.map((name, index) => (
-                                                <option key={index} value={name}>
-                                                    {name}
+                                            {sheets.map((sheetName, index) => (
+                                                <option key={index} value={sheetName}>
+                                                    {sheetName}
                                                 </option>
                                             ))}
                                         </select>
                                     </label>
-                                    <label>
-                                        <select>
+                                    <label htmlFor="mappings">
+                                        <select name="mappings" id="mappings" 
+                                            // value={value}
+                                            onChange={handleMapSelect} 
+                                            required
+                                        >
                                             <option value="">Select a mapping</option>
                                             {/* Generate options based on mappings */}
-                                            {mappings.map((value, index) => (
-                                                <option key={index} value={value}>
-                                                    {value.mapping}
+                                            {mappings.map((m, index) => (
+                                                <option 
+                                                    key={index} 
+                                                    value={m.mapping}
+                                                >
+                                                    {m.mapping}
                                                 </option>
                                             ))}
                                         </select>
