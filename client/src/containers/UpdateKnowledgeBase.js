@@ -75,9 +75,12 @@ const MatchRow = styled.div`
 `
 // TODO Store the sheet to mapping pairs somewhere
 const UpdateKnowledgeBase = () => {
+
     const [file, setFile] = useState(null)
     const [sheets, setSheets] = useState([])
     const [mappings, setMappings] = useState([])
+    // a pair = {sheet name, mapping}
+    const [dropdownPairs, setDropdownPairs] = useState([{sheetName: '', mappingName: '' }]);
 
     const tempData = [
         {mapping: "SELECT * FROM table1"},
@@ -126,52 +129,69 @@ const UpdateKnowledgeBase = () => {
         // Read the file content
         var reader = new FileReader();
         reader.onload = function(e) {
-            // Assuming the data is binary (e.g., an Excel file)
             const data = e.target.result;
 
             // Use xlsx to parse the Excel content
             const workbook = XLSX.read(data);
             const names = workbook.SheetNames;
             setSheets(workbook.SheetNames);
-            // const sheetName = workbook.SheetNames[0];
-            // const worksheet = workbook.Sheets[sheetName];
             console.log(workbook)
             console.log(names)
+
+            // intialize pairings
+            const initialPairs = names.reduce((acc, key) => {
+                acc[key] = ''; 
+                return acc;
+            }, {});
+            setDropdownPairs(initialPairs);
         };
         reader.readAsArrayBuffer(file);
-        
-        // const url = 'http://localhost:3000/uploadFile';
-        // const formData = new FormData();
-        // formData.append('file', file);
-        // formData.append('fileName', file.name);
-        // const config = {
-        //     headers: {
-        //         'content-type': 'multipart/form-data',
-        //     },
-        // };
-        // axios.post(url, formData, config).then((response) => {
-        //     console.log(response.data);
-        // });
     };
 
-    function handleMapSelect(event) {
-        // setSelectedValues((prevSelectedValues) => ({
-        //   ...prevSelectedValues,
-        //   [sheetName]: value,
-        // }));
-        // console.log(sheetName, value);
-        const selectedValue = event.target.value;
-        console.log('Selected Mapping:', selectedValue);
+    function handleSheetSelect(event, row) {
+        // console.log(dropdownPairs)
+
+        const selectedSheet = event.target.value;
+        const sheetIndex = event.target.selectedIndex - 1;
+        console.log('Selected Sheet:', selectedSheet);
+        console.log('Sheet Index:', event.target.selectedIndex);
+        const mappingId = "mappings" + "-" + row;
+        console.log("mapping element id:", mappingId);
+        var correspondingMappingDropdown = document.getElementById(mappingId);
+
+        const newPairs = {...dropdownPairs, [selectedSheet]: correspondingMappingDropdown.value};
+        setDropdownPairs(newPairs);
     }
 
-    function handleSheetSelect(event) {
-        // setSelectedValues((prevSelectedValues) => ({
-        //   ...prevSelectedValues,
-        //   [sheetName]: value,
-        // }));
-        // console.log(sheetName, value);
-        const selectedValue = event.target.value;
-        console.log('Selected Sheet:', selectedValue);
+    function handleMapSelect(event, row) {
+        // console.log(dropdownPairs)
+
+        const selectedMapping = event.target.value;
+        console.log('Selected Mapping:', selectedMapping);
+        const sheetId = "sheets" + "-" + row;
+        console.log("sheet element id:", sheetId)
+        const sheetsDropdown = document.getElementById(sheetId);
+        console.log(sheetsDropdown);
+        const selectedSheet = sheetsDropdown.value;
+        console.log(selectedSheet);
+
+        const newPairs = {...dropdownPairs, [selectedSheet]: selectedMapping};
+        setDropdownPairs(newPairs);
+    }
+
+    // TODO: submit dropdownPairs to server
+    function handleUpdateClick() {
+        console.log(dropdownPairs);
+
+        // axios.post('https://your-api-endpoint.com/your-route', { data: dropdownPairs })
+        //     .then(response => {
+        //         // Handle the server response
+        //         console.log('Server response:', response.data);
+        //     })
+        //     .catch(error => {
+        //         // Handle errors
+        //         console.error('Error sending data to server:', error);
+        //     });
     }
 
     return (
@@ -196,14 +216,14 @@ const UpdateKnowledgeBase = () => {
                     <Box> 
                         <p> 2. Match Mappings with Excel Sheets </p>
                         <MatchBox>
-                            {sheets.map((idx) => (
+                            {sheets.map((sheetName, idx) => (
                                 <MatchRow key={idx}>
                                     <label htmlFor="sheets">
-                                        <select name="sheets" id="mappings" 
-                                            onChange={handleSheetSelect} 
+                                        <select name="sheets" id={`sheets-${idx}`}
+                                            onChange={(e) => handleSheetSelect(e, idx)} 
                                             required
                                         >
-                                            <option value="">Select a sheet</option>
+                                            <option value="placeholder">Select a sheet</option>
                                             {/* Dynamically generate options based on sheet names */}
                                             {sheets.map((sheetName, index) => (
                                                 <option key={index} value={sheetName}>
@@ -213,12 +233,12 @@ const UpdateKnowledgeBase = () => {
                                         </select>
                                     </label>
                                     <label htmlFor="mappings">
-                                        <select name="mappings" id="mappings" 
+                                        <select name="mappings" id={`mappings-${idx}`}
                                             // value={value}
-                                            onChange={handleMapSelect} 
+                                            onChange={(e) => handleMapSelect(e, idx)} 
                                             required
                                         >
-                                            <option value="">Select a mapping</option>
+                                            <option value="placeholder">Select a mapping</option>
                                             {/* Generate options based on mappings */}
                                             {mappings.map((m, index) => (
                                                 <option 
@@ -236,7 +256,7 @@ const UpdateKnowledgeBase = () => {
                     </Box>
                 </RightHalf>
             </Grid>
-            <UpdateButton> Update </UpdateButton>
+            <UpdateButton onClick={handleUpdateClick} > Update </UpdateButton>
         </div>
     );
 }
