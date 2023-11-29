@@ -183,15 +183,17 @@ const UpdateKnowledgeBase = () => {
     function handleUpdateClick() {
         console.log(dropdownPairs);
 
-        // axios.post('https://your-api-endpoint.com/your-route', { data: dropdownPairs })
-        //     .then(response => {
-        //         // Handle the server response
-        //         console.log('Server response:', response.data);
-        //     })
-        //     .catch(error => {
-        //         // Handle errors
-        //         console.error('Error sending data to server:', error);
-        //     });
+        axios.post('https://your-api-endpoint.com/your-route', { data: dropdownPairs })
+            .then(response => {
+                // Handle the server response
+                console.log('Server response:', response.data);
+                alert("Success!");
+            })
+            .catch(error => {
+                // Handle errors
+                console.error('Error sending data to server:', error);
+                alert("Failed to update knowledge base. Please try again.");
+            });
     }
 
     return (
