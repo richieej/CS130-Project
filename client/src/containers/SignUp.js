@@ -25,14 +25,21 @@ const Title = styled.h1`
     margin: 0;
 `
 
-const Login = () => {
+const SignUp = ({ isAdmin }) => {
     const [user, setUser] = useState(null);
     const { dispatch } = useContext(Ctx);
     const navigate = useNavigate();
 
-    const fetchUser = async() => {
+    const createUser = async() => {
         try {
-            const userData = await UserService.getUser(user.email);
+            const userData = {
+                email: user.email,
+                firstName: user.given_name,
+                lastName: user.family_name,
+                admin: isAdmin,
+            }
+            await UserService.createUser(userData);
+
             dispatch({
                 type: 'SET_USER',
                 user: userData,
@@ -40,44 +47,24 @@ const Login = () => {
             SessionStorage.storeItem("user", userData);
             navigate("/");
         } catch (e) {
-            if (e.response.status === 404) {
-                try {
-                    const createUserData = await UserService.createUser({
-                        email: user.email,
-                        firstName: user.given_name,
-                        lastName: user.family_name,
-                        admin: false,
-                    });
-                    dispatch({
-                        type: 'SET_USER',
-                        user: createUserData,
-                    });
-                    SessionStorage.storeItem("user", createUserData);
-                    navigate("/");
-                } catch (err) {
-                    console.log(err);
-                    throw err;
-                }
-            } else {
-                console.log(e);
+            console.log(e);
             throw e;
-            }
         }
     }
 
     useEffect(() => {
         if (user !== null) {
             console.log(user);
-            fetchUser();
+            createUser();
         }
     }, [user])
 
     return (
         <Container>
-            <Title>Login</Title>
+            <Title>{isAdmin && 'Admin '}Sign Up</Title>
             <GoogleAuthButton setUser={setUser}/>
         </Container>
     );
 }
 
-export default Login;
+export default SignUp;
