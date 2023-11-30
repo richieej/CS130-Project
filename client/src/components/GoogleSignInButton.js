@@ -1,14 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import { useJwt } from "react-jwt";
+import axios from 'axios';
 
 const GoogleSignInButton = ({ setUser }) => {
-    const [token, setToken] = useState(null);
-    const { decodedToken, isExpired } = useJwt(token);
+    //const [token, setToken] = useState(null);
+    const [state, setState] = useState({
+      token:'',
+      userID: '',
+      userEmail: ''
+    })
+    const { decodedToken, isExpired } = useJwt(state.token);
 
     const handleCredentialResponse = (response) => {
       console.log("Encoded JWT ID token: " + response.credential);
-      setToken(response.credential);
+      setState({...state, token: response.credential});
     };
+
+    const throwUserBack=async()=>{
+
+      try {
+        await axios.get(`http://localhost:6000/user/${handleCredentialResponse.sub}`)
+          .then(response => {
+            return response.data;
+          })
+          .catch(async(error) => {
+            if (error.response.status === 404) {
+              const user = {
+                id: handleCredentialResponse.sub,
+                email: handleCredentialResponse.email,
+                firstName: handleCredentialResponse.given_name,
+                lastName: handleCredentialResponse.family_name
+              }
+
+              await axios.post(`http://localhost:6000/user/add`, { user })
+                .then(response => {
+                  return response.data
+                })
+                .catch(error => {
+                  console.log(error)
+                })
+            }
+          })
+      } catch (error) {
+        console.log(error)
+      }
+
+    }
 
     useEffect(() => {
       setUser(decodedToken);
@@ -25,6 +62,8 @@ const GoogleSignInButton = ({ setUser }) => {
           { theme: "outline", size: "large" }  // customization attributes
         );
         window.google.accounts.id.prompt(); // also display the One Tap dialog
+        console.log(handleCredentialResponse);
+        throwUserBack();
       };
 
       if (!window.google || !window.google.accounts || !window.google.accounts.id) {
