@@ -30,6 +30,11 @@ class MappingApplier {
         table.add_data(name, headers, data);
         return table;
     }
+
+    async update_from_table(table, mapping) {
+        const { write_query, name } = mapping;
+        
+    }
 }
 
 module.exports = { MappingApplier };
