@@ -54,10 +54,8 @@ test('Write and read to Fuseki database', async () => {
         expect(read_result.error).toBeFalsy();
         expect(read_result.headers).toStrictEqual(["name", "schoolName"]);
         expect(read_result.data).toBeTruthy();
-        expect(read_result.data[0].name).toBeTruthy();
-        expect(read_result.data[0].schoolName).toBeTruthy();
-        expect(read_result.data[0].name.value).toBe("Joe Bruin");
-        expect(read_result.data[0].schoolName.value).toBe("University of California - Los Angeles");
+        expect(read_result.data[0].name).toBe("Joe Bruin");
+        expect(read_result.data[0].schoolName).toBe("University of California - Los Angeles");
     } finally {
         const delete_result = await fuseki.write_data(delete_test);
         expect(delete_result.error).toBeFalsy();

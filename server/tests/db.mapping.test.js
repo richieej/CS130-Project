@@ -21,20 +21,25 @@ describe('Mapping read and write', () => {
     });
 
     test('Create new mappings adds new mapping', async () => {
+        const name = "test_mapping";
+        const read_query = `
+            SELECT ?subject ?predicate ?object
+            WHERE {
+                ?subject ?predicate ?object
+            }
+        `;
+        const write_query = `
+            INSERT DATA {
+                ?subject ?predicate ?object.
+            }
+        `;
+        const owner_uuid = "PLACEHOLDER_OWNER_UUID";
+
         const create_result = await mapDB.create_new_mapping(
-            "test_mapping",
-            `
-                SELECT ?subject ?predicate ?object
-                WHERE {
-                    ?subject ?predicate ?object
-                }
-            `,
-            `
-                INSERT DATA {
-                    ?subject ?predicate ?object.
-                }
-            `,
-            "PLACEHOLDER_OWNER_UUID"
+            name,
+            read_query,
+            write_query,
+            owner_uuid    
         );
         expect(create_result.uuid).toBeTruthy();
         expect(create_result.err).toBeFalsy();
@@ -46,9 +51,11 @@ describe('Mapping read and write', () => {
 
         const mapping = await mapDB.get_mapping_by_uuid(create_result.uuid);
         expect(mapping).toBeDefined();
-        expect(mapping.name).toEqual("test_mapping");
-        expect(mapping.owner_uuid).toEqual("PLACEHOLDER_OWNER_UUID");
+        expect(mapping.name).toEqual(name);
+        expect(mapping.owner_uuid).toEqual(owner_uuid);
         expect(mapping.uuid).toEqual(create_result.uuid);
+        expect(mapping.read_query).toEqual(read_query);
+        expect(mapping.write_query).toEqual(write_query);
     });
 });
 

@@ -1,6 +1,7 @@
 const { FusekiProxy } = require("../db/fuseki");
 const { MappingDBProxy } = require("../db/mapping");
 const { MappingApplier } = require("../src/mapping_applier");
+const { ExcelTable } = require('../src/excel.js');
 
 const stream = require('stream');
 const ExcelJS = require('exceljs');
@@ -19,7 +20,22 @@ afterAll(async () => {
 });
 
 describe('Using Students and Schools dataset', () => {
-    beforeAll(async () => {
+
+    let simple_mapping;
+    let school_mapping;
+
+    beforeEach(async () => {
+        const clear_result = await fuseki.write_data(`
+            DELETE {
+                ?s ?p ?o
+            }
+            WHERE {
+                ?s ?p ?o.
+            };
+        `);
+        expect(clear_result.error).toBeUndefined();
+        expect(clear_result.results).toBe(true);
+
         const write_result = await fuseki.write_data(`
         PREFIX eql: <http://excql.org/relations/#>
         INSERT DATA
@@ -45,29 +61,66 @@ describe('Using Students and Schools dataset', () => {
         expect(write_result.results).toBe(true);
     });
 
-    // TODO: do we need a delete?
-
-    test('download excel from simple subject predicate object mapping', async () => {
-        const create_result = await map_db.create_new_mapping("Subject Predicate Object", `
+    beforeAll(async () => {
+        const simple_create_result = await map_db.create_new_mapping("Subject Predicate Object", `
             PREFIX eql: <http://excql.org/relations/#>
             SELECT ?subject ?predicate ?object
             WHERE {
                 ?subject ?predicate ?object
             }
-        `, `PLACEHOLDER`, "PLACEHOLDER");
-        expect(create_result.err).toBeUndefined();
-        expect(create_result.uuid).toBeDefined();
+        `, "PLACEHOLDER", "PLACEHOLDER");
+        expect(simple_create_result.err).toBeUndefined();
+        expect(simple_create_result.uuid).toBeDefined();
     
-        const mapping = await map_db.get_mapping_by_uuid(create_result.uuid);
-        expect(mapping).toBeTruthy();
-        expect(mapping.name).toEqual("Subject Predicate Object");
-        expect(mapping.uuid).toEqual(create_result.uuid);
+        simple_mapping = await map_db.get_mapping_by_uuid(simple_create_result.uuid);
+        expect(simple_mapping).toBeTruthy();
+        expect(simple_mapping.name).toEqual("Subject Predicate Object");
+        expect(simple_mapping.uuid).toEqual(simple_create_result.uuid);
+
+        const school_create_result = await map_db.create_new_mapping("Students and Schools", `
+            PREFIX eql: <http://excql.org/relations/#>
+            SELECT ?Name ?SchoolName
+            WHERE {
+                ?student eql:school ?school.
+                ?student eql:name ?Name.
+                ?school eql:name ?SchoolName.
+            }
+        `, `
+            PREFIX eql: <http://excql.org/relations/#>
+            
+            DELETE {
+                ?student eql:school ?school
+            }
+            WHERE {
+                ?student eql:name <<OLD.Name>>.
+                ?school eql:name <<OLD.SchoolName>>.
+            };
+
+            INSERT {
+                ?student eql:school ?school
+            }
+            WHERE {
+                ?student eql:name <<NEW.Name>>.
+                ?school eql:name <<NEW.SchoolName>>.
+            };
+        `, "PLACEHOLDER");
+        expect(school_create_result.err).toBeUndefined();
+        expect(school_create_result.uuid).toBeDefined();
     
-        const table = await applier.table_from_mapping(mapping);
+        school_mapping = await map_db.get_mapping_by_uuid(school_create_result.uuid);
+        expect(school_mapping).toBeTruthy();
+        expect(school_mapping.name).toEqual("Students and Schools");
+        expect(school_mapping.uuid).toEqual(school_create_result.uuid);
+    });
+
+    // TODO: do we need a delete?
+
+    test('download excel from simple subject predicate object mapping', async () => {
+        const table = await applier.table_from_mapping(simple_mapping);
         expect(table).toBeDefined();
     
         const passStream = new stream.PassThrough();        
-        table.write(passStream);
+        await table.write(passStream);
         const workbook_result = new ExcelJS.Workbook();
         await workbook_result.xlsx.read(passStream);
         
@@ -105,44 +158,14 @@ describe('Using Students and Schools dataset', () => {
         expect(sheetValues).toContainEqual(
             [, "http://students/TracyZhao", "http://excql.org/relations/#school", "http://schools/UCLA"]
         );
-    
-        // expect(sheetValues).toContainEqual(
-        //     [, "Joe Bruin", "University of California - Los Angeles"]
-        // );
-        // expect(sheetValues).toContainEqual(
-        //     [, "Tracy Zhao", "University of California - Los Angeles"]
-        // );
-        // expect(sheetValues).toContainEqual(
-        //     [, "Barack Obama", "Harvard University - Harvard Law School"]
-        // );
-        // expect(sheetValues).toContainEqual(
-        //     [, "Barack Obama", "Columbia University"]
-        // );
     });
     
     test('download excel from student school mapping', async () => {
-        const create_result = await map_db.create_new_mapping("Students and Schools", `
-            PREFIX eql: <http://excql.org/relations/#>
-            SELECT ?Name ?SchoolName
-            WHERE {
-                ?student eql:school ?school.
-                ?student eql:name ?Name.
-                ?school eql:name ?SchoolName.
-            }
-        `, `PLACEHOLDER`, "PLACEHOLDER");
-        expect(create_result.err).toBeUndefined();
-        expect(create_result.uuid).toBeDefined();
-    
-        const mapping = await map_db.get_mapping_by_uuid(create_result.uuid);
-        expect(mapping).toBeTruthy();
-        expect(mapping.name).toEqual("Students and Schools");
-        expect(mapping.uuid).toEqual(create_result.uuid);
-    
-        const table = await applier.table_from_mapping(mapping);
+        const table = await applier.table_from_mapping(school_mapping);
         expect(table).toBeDefined();
 
         const passStream = new stream.PassThrough();        
-        table.write(passStream);
+        await table.write(passStream);
         const workbook_result = new ExcelJS.Workbook();
         await workbook_result.xlsx.read(passStream);
         
@@ -164,5 +187,32 @@ describe('Using Students and Schools dataset', () => {
             [, "Barack Obama", "Columbia University"]
         );
     });
-})
+
+    test('upload excel student school mapping', async () => {
+        const table = new ExcelTable();
+        table.add_data("Students and Schools", {
+            headers: ["Name", "SchoolName"],
+            data: [
+                {Name: "Joe Bruin", SchoolName: "Harvard University - Harvard Law School"},
+                {Name: "Tracy Zhao", SchoolName: "University of California - Los Angeles"},
+                {Name: "Tracy Zhao", SchoolName: "Harvard University - Harvard Law School"},
+                {Name: "Joe Bruin", SchoolName: "Columbia University"},
+                {Name: "Barack Obama", SchoolName: "Columbia University"}
+            ]
+        });
+        
+        const write_result = await applier.update_from_table(table, school_mapping);
+        expect(write_result.results).toBe(true);
+        expect(write_result.error).toBeUndefined();
+
+        const read_result = await fuseki.read_data(school_mapping.read_query);
+        expect(read_result.error).toBeUndefined();
+        expect(read_result.headers).toEqual(["Name", "SchoolName"]);
+        expect(read_result.data).toContainEqual({Name: "Joe Bruin", SchoolName: "Harvard University - Harvard Law School"});
+        expect(read_result.data).toContainEqual({Name: "Tracy Zhao", SchoolName: "University of California - Los Angeles"});
+        expect(read_result.data).toContainEqual({Name: "Tracy Zhao", SchoolName: "Harvard University - Harvard Law School"});
+        expect(read_result.data).toContainEqual({Name: "Joe Bruin", SchoolName: "Columbia University"});
+        expect(read_result.data).toContainEqual({Name: "Barack Obama", SchoolName: "Columbia University"});
+    });
+});
 
