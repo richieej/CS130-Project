@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components'
+import LogoutButton from './LogoutButton';
 
 const Container = styled.h1`
     margin: 0 auto 0 35px;
@@ -13,6 +14,7 @@ export default function PageHeader(props) {
     return (
         <Container>
             {props.title}
+            <LogoutButton/>
         </Container>
     );
 }

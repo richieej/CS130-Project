@@ -7,9 +7,10 @@ import Landing from "./containers/LandingPage";
 import Login from "./containers/Login";
 import UpdateKnowledgeBase from "./containers/UpdateKnowledgeBase"
 import SignUp from "./containers/SignUp"
+import SessionStorage from "./utils/SessionStorage";
+import CreateMapping from "./containers/CreateMapping";
 
 import { Ctx, StateProvider } from './components/StateProvider';
-import SessionStorage from "./utils/SessionStorage";
 
 const Container = styled.div`
     height: 100vh;
@@ -43,9 +44,9 @@ const Home = () => {
       <Container>
         <Routes>
           <Route exact path="/" element={<Landing />} />
-          <Route path = "/login" element={<Login/>} />
-          <Route path = "/signup/admin" element={<SignUp isAdmin={true}/>} />
-          <Route path = "/signup/regular" element={<SignUp isAdmin={false}/>} />
+          <Route exact path = "/login" element={<Login/>} />
+          <Route exact path = "/signup/admin" element={<SignUp isAdmin={true}/>} />
+          <Route exact path = "/signup/regular" element={<SignUp isAdmin={false}/>} />
           <Route path="*" element={<Landing />} />
         </Routes>
       </Container>
@@ -56,7 +57,8 @@ const Home = () => {
     <Container>
       <Routes>
         <Route exact path="/" element={<Landing />} />
-        <Route path="/updateknowledgebase" element={<UpdateKnowledgeBase/>} />
+        <Route exact path="/updateknowledgebase" element={<UpdateKnowledgeBase/>} />
+        <Route exact path="/createmapping" element={<CreateMapping />} />
         <Route path="*" element={<Landing />} />
       </Routes>
     </Container>

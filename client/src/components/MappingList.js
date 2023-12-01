@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styled from 'styled-components'
 
 
 const ScrollableContainer = styled.div`
-    max-height: 90%;
+    max-height: 70vh;
     max-width: 100%;
-    width: 40vw;
+    width: 100%;
     overflow-y: auto;
     font-family: 'Courier Prime', monospace;
     font-size: 20px;
+    margin-right: 0px;
 `
 
 const Header = styled.h1 `
@@ -18,48 +19,38 @@ const Header = styled.h1 `
     padding: 0;
 `
 
-const MappingList = () => {
-    const [data, setData] = useState([]);
+const Query = styled.li `
+    padding: 10px;
+    margin: 5px;
+`
 
-    const tempData = [
-      {mapping: "SELECT * FROM table1"},
-      {mapping: "SELECT * FROM table2"},
-      {mapping: "SELECT * FROM table3"},
-      {mapping: "SELECT * FROM table4"},
-      {mapping: "SELECT * FROM table5"},
-      {mapping: "SELECT * FROM table6"},
-      {mapping: "SELECT * FROM table7 SELECT * FROM table7"},
-      {mapping: "SELECT * FROM table8"},
-      {mapping: "SELECT * FROM table9 SELECT * FROM table9"},
-      {mapping: "SELECT * FROM table10"},
-      {mapping: "SELECT * FROM table11"},
-      {mapping: "SELECT * FROM table12"},
-    ]
+const QueryName = styled.p`
+  font-weight: bold;
+  margin-bottom: 0px;
+  font-size: 22px;
+`
 
-    useEffect(() => {
-        // const fetchData = async () => {
-        //     try {
-        //     const response = await fetch('http://localhost:8080/mappings');
-        //     const result = await response.json();
-        //     setData(result.items); 
-        //     } catch (error) {
-        //     console.error('Error fetching data:', error);
-        //     }
-        // };
-        // fetchData();
-        setData(tempData)
-    }, []); // empty dependency array ensures that this effect runs once when the component mounts
+const QueryDetails = styled.p `
+  margin: 0px;
+  margin-left: 10px;
+`
 
+const MappingList = ({ data }) => {
   return (
     <div>
       <Header> SPARQL Mappings</Header>
       <ScrollableContainer>
-        <ul>
+        <ol>
             {data.map(item => (
                 // Assuming each item has a 'mapping' property
-                <li> {item.mapping} </li>
+                <Query key={item.uuid}>
+                  <QueryName>{item.name}:</QueryName>
+                  <QueryDetails><strong style={{marginRight: '5px'}}>Created by:</strong>{item.owner_uuid}</QueryDetails>
+                  <QueryDetails><strong style={{marginRight: '5px'}}>Read Query:</strong>{item.read_query} </QueryDetails>
+                  <QueryDetails><strong style={{marginRight: '5px'}}>Write Query:</strong>{item.write_query}</QueryDetails>
+                </Query>
             ))}
-        </ul>
+        </ol>
       </ScrollableContainer>
     </div>
   );

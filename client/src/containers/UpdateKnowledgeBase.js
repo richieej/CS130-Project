@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { Navigate } from "react-router-dom";
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import styled from 'styled-components'
 import PageHeader from '../components/PageHeader'
 import MappingList from '../components/MappingList';
+
+import { Ctx } from '../components/StateProvider';
 
 const Grid = styled.div`
     display: grid;
@@ -102,13 +105,13 @@ const UpdateKnowledgeBase = () => {
         //     try {
         //     const response = await fetch('http://localhost:8080/mappings');
         //     const result = await response.json();
-        //     setData(result.items); 
+        //     setData(result.items);
         //     } catch (error) {
         //     console.error('Error fetching data:', error);
         //     }
         // };
         // fetchData();
-        setMappings(tempData)
+        // setMappings(tempData)
     }, []); // empty dependency array ensures that this effect runs once when the component mounts
 
     function onFileChange(event) {
@@ -140,7 +143,7 @@ const UpdateKnowledgeBase = () => {
 
             // intialize pairings
             const initialPairs = names.reduce((acc, key) => {
-                acc[key] = ''; 
+                acc[key] = '';
                 return acc;
             }, {});
             setDropdownPairs(initialPairs);
@@ -196,17 +199,23 @@ const UpdateKnowledgeBase = () => {
             });
     }
 
+    const { state } = useContext(Ctx);
+
+    if (state.user === null || !state.user.admin) {
+        return <Navigate to="/" replace />;
+    }
+
     return (
         <div style={{ height: "fit-content"}}>
             <PageHeader title={"Update Knowledge Base"} />
             <Grid>
                 <MappingsContainer>
-                    <MappingList/>
+                    <MappingList data={mappings}/>
                 </MappingsContainer>
                 <RightHalf>
-                    <Box> 
-                        <p> 1. Upload Excel File </p> 
-                        <input 
+                    <Box>
+                        <p> 1. Upload Excel File </p>
+                        <input
                             type="file"
                             accept=".xlsx, .xls"
                             // style={{ display: 'none' }}
@@ -215,14 +224,14 @@ const UpdateKnowledgeBase = () => {
                         />
                         <button onClick={onFileUpload}>Upload</button>
                     </Box>
-                    <Box> 
+                    <Box>
                         <p> 2. Match Mappings with Excel Sheets </p>
                         <MatchBox>
                             {sheets.map((sheetName, idx) => (
                                 <MatchRow key={idx}>
                                     <label htmlFor="sheets">
                                         <select name="sheets" id={`sheets-${idx}`}
-                                            onChange={(e) => handleSheetSelect(e, idx)} 
+                                            onChange={(e) => handleSheetSelect(e, idx)}
                                             required
                                         >
                                             <option value="placeholder">Select a sheet</option>
@@ -237,14 +246,14 @@ const UpdateKnowledgeBase = () => {
                                     <label htmlFor="mappings">
                                         <select name="mappings" id={`mappings-${idx}`}
                                             // value={value}
-                                            onChange={(e) => handleMapSelect(e, idx)} 
+                                            onChange={(e) => handleMapSelect(e, idx)}
                                             required
                                         >
                                             <option value="placeholder">Select a mapping</option>
                                             {/* Generate options based on mappings */}
                                             {mappings.map((m, index) => (
-                                                <option 
-                                                    key={index} 
+                                                <option
+                                                    key={index}
                                                     value={m.mapping}
                                                 >
                                                     {m.mapping}
