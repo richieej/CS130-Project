@@ -8,6 +8,7 @@ app.use(express.json());
 //app.use(require("./routes/record"));
 app.use(require("./routes/user"));
 app.use(require("./routes/mapping"));
+app.use(require("./routes/table"));
 // get driver connection
 const dbo = require("./db/conn");
 app.listen(port, () => {
