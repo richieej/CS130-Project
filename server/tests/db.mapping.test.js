@@ -78,13 +78,13 @@ test('fill mapping with write data', () => {
     const new_data = {
         headers: ["Name", "SchoolName"],
         data: [{
-            Name: "Joe Bruin",
-            SchoolName: "Harvard University"
+            Name: '"Joe Bruin"',
+            SchoolName: '"Harvard University"'
         }, {
-            Name: "Tracy Zhao",
-            SchoolName: "University of California - Los Angeles"
+            Name: '"Tracy Zhao"',
+            SchoolName: '"University of California - Los Angeles"'
         }, {
-            Name: "Joe Biden",
+            Name: '"Joe Biden"',
             SchoolName: undefined
         }]
     };
@@ -92,14 +92,14 @@ test('fill mapping with write data', () => {
     const old_data = {
         headers: ["Name", "SchoolName"],
         data: [{
-            Name: "Joe Bruin",
-            SchoolName: "University of California - Los Angeles"
+            Name: '"Joe Bruin"',
+            SchoolName: '"University of California - Los Angeles"'
         }, {
-            Name: "Tracy Zhao",
-            SchoolName: "Harvard University"
+            Name: '"Tracy Zhao"',
+            SchoolName: '"Harvard University"'
         }, {
-            Name: "Joe Biden",
-            SchoolName: "University of Delaware"
+            Name: '"Joe Biden"',
+            SchoolName: '"University of Delaware"'
         }]
     };
 

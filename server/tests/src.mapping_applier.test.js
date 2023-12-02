@@ -68,7 +68,22 @@ describe('Using Students and Schools dataset', () => {
             WHERE {
                 ?subject ?predicate ?object
             }
-        `, "PLACEHOLDER", "PLACEHOLDER");
+        `, `
+            PREFIX eql: <http://excql.org/relations/#>
+            DELETE {
+                ?subject ?predicate ?object
+            } 
+            WHERE {
+                FILTER(?subject=<<OLD.subject>> && ?predicate=<<OLD.predicate>> && ?object=<<OLD.object>>).
+            };
+
+            INSERT {
+                ?subject ?predicate ?object
+            } 
+            WHERE {
+                FILTER(?subject=<<NEW.subject>> && ?predicate=<<NEW.predicate>> && ?object=<<NEW.object>>).
+            };
+        `, "PLACEHOLDER");
         expect(simple_create_result.err).toBeUndefined();
         expect(simple_create_result.uuid).toBeDefined();
     
@@ -116,7 +131,7 @@ describe('Using Students and Schools dataset', () => {
     // TODO: do we need a delete?
 
     test('download excel from simple subject predicate object mapping', async () => {
-        const table = await applier.table_from_mapping(simple_mapping);
+        const table = await applier.table_from_mapping([simple_mapping]);
         expect(table).toBeDefined();
     
         const passStream = new stream.PassThrough();        
@@ -129,39 +144,39 @@ describe('Using Students and Schools dataset', () => {
     
         const sheetValues = workbook_result.worksheets[0].getSheetValues();
         expect(sheetValues).toContainEqual(
-            [, "http://schools/HarvardLaw", "http://excql.org/relations/#name", "Harvard University - Harvard Law School"]
+            [, "<http://schools/HarvardLaw>", "<http://excql.org/relations/#name>", '"Harvard University - Harvard Law School"']
         );
         expect(sheetValues).toContainEqual(
-            [, "http://schools/Columbia", "http://excql.org/relations/#name", "Columbia University"]
+            [, "<http://schools/Columbia>", "<http://excql.org/relations/#name>", '"Columbia University"']
         );
         expect(sheetValues).toContainEqual(
-            [, "http://schools/UCLA", "http://excql.org/relations/#name", "University of California - Los Angeles"]
+            [, "<http://schools/UCLA>", "<http://excql.org/relations/#name>", '"University of California - Los Angeles"']
         );
         expect(sheetValues).toContainEqual(
-            [, "http://students/BarackObama", "http://excql.org/relations/#name", "Barack Obama"]
+            [, "<http://students/BarackObama>", "<http://excql.org/relations/#name>", '"Barack Obama"']
         );
         expect(sheetValues).toContainEqual(
-            [, "http://students/BarackObama", "http://excql.org/relations/#school", "http://schools/HarvardLaw"]
+            [, "<http://students/BarackObama>", "<http://excql.org/relations/#school>", "<http://schools/HarvardLaw>"]
         );
         expect(sheetValues).toContainEqual(
-            [, "http://students/BarackObama", "http://excql.org/relations/#school", "http://schools/Columbia"]
+            [, "<http://students/BarackObama>", "<http://excql.org/relations/#school>", "<http://schools/Columbia>"]
         );
         expect(sheetValues).toContainEqual(
-            [, "http://students/JoeBruin", "http://excql.org/relations/#name", "Joe Bruin"]
+            [, "<http://students/JoeBruin>", "<http://excql.org/relations/#name>", '"Joe Bruin"']
         );
         expect(sheetValues).toContainEqual(
-            [, "http://students/JoeBruin", "http://excql.org/relations/#school", "http://schools/UCLA"]
+            [, "<http://students/JoeBruin>", "<http://excql.org/relations/#school>", "<http://schools/UCLA>"]
         );
         expect(sheetValues).toContainEqual(
-            [, "http://students/TracyZhao", "http://excql.org/relations/#name", "Tracy Zhao"]
+            [, "<http://students/TracyZhao>", "<http://excql.org/relations/#name>", '"Tracy Zhao"']
         );
         expect(sheetValues).toContainEqual(
-            [, "http://students/TracyZhao", "http://excql.org/relations/#school", "http://schools/UCLA"]
+            [, "<http://students/TracyZhao>", "<http://excql.org/relations/#school>", "<http://schools/UCLA>"]
         );
     });
     
     test('download excel from student school mapping', async () => {
-        const table = await applier.table_from_mapping(school_mapping);
+        const table = await applier.table_from_mapping([school_mapping]);
         expect(table).toBeDefined();
 
         const passStream = new stream.PassThrough();        
@@ -175,16 +190,16 @@ describe('Using Students and Schools dataset', () => {
         const sheetValues = workbook_result.worksheets[0].getSheetValues();
         expect(sheetValues[1]).toEqual([, "Name", "SchoolName"]);
         expect(sheetValues).toContainEqual(
-            [, "Joe Bruin", "University of California - Los Angeles"]
+            [, '"Joe Bruin"', '"University of California - Los Angeles"']
         );
         expect(sheetValues).toContainEqual(
-            [, "Tracy Zhao", "University of California - Los Angeles"]
+            [, '"Tracy Zhao"', '"University of California - Los Angeles"']
         );
         expect(sheetValues).toContainEqual(
-            [, "Barack Obama", "Harvard University - Harvard Law School"]
+            [, '"Barack Obama"', '"Harvard University - Harvard Law School"']
         );
         expect(sheetValues).toContainEqual(
-            [, "Barack Obama", "Columbia University"]
+            [, '"Barack Obama"', '"Columbia University"']
         );
     });
 
@@ -193,26 +208,135 @@ describe('Using Students and Schools dataset', () => {
         table.add_data("Students and Schools", {
             headers: ["Name", "SchoolName"],
             data: [
-                {Name: "Joe Bruin", SchoolName: "Harvard University - Harvard Law School"},
-                {Name: "Tracy Zhao", SchoolName: "University of California - Los Angeles"},
-                {Name: "Tracy Zhao", SchoolName: "Harvard University - Harvard Law School"},
-                {Name: "Joe Bruin", SchoolName: "Columbia University"},
-                {Name: "Barack Obama", SchoolName: "Columbia University"}
+                {Name: '"Joe Bruin"', SchoolName: '"Harvard University - Harvard Law School"'},
+                {Name: '"Tracy Zhao"', SchoolName: '"University of California - Los Angeles"'},
+                {Name: '"Tracy Zhao"', SchoolName: '"Harvard University - Harvard Law School"'},
+                {Name: '"Joe Bruin"', SchoolName: '"Columbia University"'},
+                {Name: '"Barack Obama"', SchoolName: '"Columbia University"'}
             ]
         });
         
-        const write_result = await applier.update_from_table(table, school_mapping);
-        expect(write_result.results).toBe(true);
-        expect(write_result.error).toBeUndefined();
+        const write_result = await applier.update_from_table(table, [school_mapping]);
+        expect(write_result[0].results).toBe(true);
+        expect(write_result[0].error).toBeUndefined();
 
         const read_result = await fuseki.read_data(school_mapping.read_query);
         expect(read_result.error).toBeUndefined();
         expect(read_result.headers).toEqual(["Name", "SchoolName"]);
-        expect(read_result.data).toContainEqual({Name: "Joe Bruin", SchoolName: "Harvard University - Harvard Law School"});
-        expect(read_result.data).toContainEqual({Name: "Tracy Zhao", SchoolName: "University of California - Los Angeles"});
-        expect(read_result.data).toContainEqual({Name: "Tracy Zhao", SchoolName: "Harvard University - Harvard Law School"});
-        expect(read_result.data).toContainEqual({Name: "Joe Bruin", SchoolName: "Columbia University"});
-        expect(read_result.data).toContainEqual({Name: "Barack Obama", SchoolName: "Columbia University"});
+        expect(read_result.data).toContainEqual({Name: '"Joe Bruin"', SchoolName: '"Harvard University - Harvard Law School"'});
+        expect(read_result.data).toContainEqual({Name: '"Tracy Zhao"', SchoolName: '"University of California - Los Angeles"'});
+        expect(read_result.data).toContainEqual({Name: '"Tracy Zhao"', SchoolName: '"Harvard University - Harvard Law School"'});
+        expect(read_result.data).toContainEqual({Name: '"Joe Bruin"', SchoolName: '"Columbia University"'});
+        expect(read_result.data).toContainEqual({Name: '"Barack Obama"', SchoolName: '"Columbia University"'});
+    });
+
+    test('download excel with multiple sheets', async () => {
+        const table = await applier.table_from_mapping([simple_mapping, school_mapping]);
+        expect(table).toBeDefined();
+
+        const passStream = new stream.PassThrough();        
+        await table.write(passStream);
+        const workbook_result = new ExcelJS.Workbook();
+        await workbook_result.xlsx.read(passStream);
+        
+        expect(workbook_result.worksheets.length).toBe(2);
+        expect(workbook_result.worksheets[0]).toBeDefined();
+        expect(workbook_result.worksheets[1]).toBeDefined();
+
+        const sheetValues1 = workbook_result.worksheets[0].getSheetValues();
+        expect(sheetValues1).toContainEqual(
+            [, "<http://schools/HarvardLaw>", "<http://excql.org/relations/#name>", '"Harvard University - Harvard Law School"']
+        );
+        expect(sheetValues1).toContainEqual(
+            [, "<http://schools/Columbia>", "<http://excql.org/relations/#name>", '"Columbia University"']
+        );
+        expect(sheetValues1).toContainEqual(
+            [, "<http://schools/UCLA>", "<http://excql.org/relations/#name>", '"University of California - Los Angeles"']
+        );
+        expect(sheetValues1).toContainEqual(
+            [, "<http://students/BarackObama>", "<http://excql.org/relations/#name>", '"Barack Obama"']
+        );
+        expect(sheetValues1).toContainEqual(
+            [, "<http://students/BarackObama>", "<http://excql.org/relations/#school>", "<http://schools/HarvardLaw>"]
+        );
+        expect(sheetValues1).toContainEqual(
+            [, "<http://students/BarackObama>", "<http://excql.org/relations/#school>", "<http://schools/Columbia>"]
+        );
+        expect(sheetValues1).toContainEqual(
+            [, "<http://students/JoeBruin>", "<http://excql.org/relations/#name>", '"Joe Bruin"']
+        );
+        expect(sheetValues1).toContainEqual(
+            [, "<http://students/JoeBruin>", "<http://excql.org/relations/#school>", "<http://schools/UCLA>"]
+        );
+        expect(sheetValues1).toContainEqual(
+            [, "<http://students/TracyZhao>", "<http://excql.org/relations/#name>", '"Tracy Zhao"']
+        );
+        expect(sheetValues1).toContainEqual(
+            [, "<http://students/TracyZhao>", "<http://excql.org/relations/#school>", "<http://schools/UCLA>"]
+        );
+    
+        const sheetValues2 = workbook_result.worksheets[1].getSheetValues();
+        expect(sheetValues2[1]).toEqual([, "Name", "SchoolName"]);
+        expect(sheetValues2).toContainEqual(
+            [, '"Joe Bruin"', '"University of California - Los Angeles"']
+        );
+        expect(sheetValues2).toContainEqual(
+            [, '"Tracy Zhao"', '"University of California - Los Angeles"']
+        );
+        expect(sheetValues2).toContainEqual(
+            [, '"Barack Obama"', '"Harvard University - Harvard Law School"']
+        );
+        expect(sheetValues2).toContainEqual(
+            [, '"Barack Obama"', '"Columbia University"']
+        );
+    });
+
+    test('upload excel with multiple mappings', async () => {
+        const table = new ExcelTable();
+        table.add_data("Sheet1", {
+            headers: ["subject", "predicate", "object"],
+            data: [
+                {subject: "<http://students/JoeBruin>", predicate: "<http://excql.org/relations/#name>", object:'"Joe Bruin"'},
+                {subject: "<http://students/TracyZhao>", predicate: "<http://excql.org/relations/#name>", object:'"Tracy Zhao"'},
+                {subject: "<http://students/BarackObama>", predicate: "<http://excql.org/relations/#name>", object:'"Barack Obama"'},
+                {subject: "<http://schools/UCLA>", predicate: "<http://excql.org/relations/#name>", object:'"University of California - Los Angeles"'},
+                {subject: "<http://schools/HarvardLaw>", predicate: "<http://excql.org/relations/#name>", object:'"Harvard University - Harvard Law School"'},
+                {subject: "<http://schools/Columbia>", predicate: "<http://excql.org/relations/#name>", object:'"Columbia University"'},
+                {subject: "<http://schools/Delaware>", predicate: "<http://excql.org/relations/#name>", object: '"Delaware University"'},
+                {subject: "<http://students/JoeBruin>", predicate: "<http://excql.org/relations/#school>", object:"<http://schools/UCLA>"},
+                {subject: "<http://students/TracyZhao>", predicate: "<http://excql.org/relations/#school>", object:"<http://schools/UCLA>"},
+                {subject: "<http://students/BarackObama>", predicate: "<http://excql.org/relations/#school>", object:"<http://schools/HarvardLaw>"},
+                {subject: "<http://students/BarackObama>", predicate: "<http://excql.org/relations/#school>", object:"<http://schools/Columbia>"},
+            ]
+        });
+        table.add_data("Sheet2", {
+            headers: ["Name", "SchoolName"],
+            data: [
+                {Name: '"Joe Bruin"', SchoolName: '"Harvard University - Harvard Law School"'},
+                {Name: '"Tracy Zhao"', SchoolName: '"University of California - Los Angeles"'},
+                {Name: '"Tracy Zhao"', SchoolName: '"Harvard University - Harvard Law School"'},
+                {Name: '"Joe Bruin"', SchoolName: '"Columbia University"'},
+                {Name: '"Barack Obama"', SchoolName: '"Columbia University"'}
+            ]
+        });
+        
+        const write_result = await applier.update_from_table(table, [simple_mapping, school_mapping]);
+        expect(write_result[0].results).toBe(true);
+        expect(write_result[0].error).toBeUndefined();
+        expect(write_result[1].results).toBe(true);
+        expect(write_result[1].error).toBeUndefined();
+
+        const read_result = await fuseki.read_data(school_mapping.read_query);
+        expect(read_result.error).toBeUndefined();
+        expect(read_result.headers).toEqual(["Name", "SchoolName"]);
+        expect(read_result.data).toContainEqual({Name: '"Joe Bruin"', SchoolName: '"Harvard University - Harvard Law School"'});
+        expect(read_result.data).toContainEqual({Name: '"Tracy Zhao"', SchoolName: '"University of California - Los Angeles"'});
+        expect(read_result.data).toContainEqual({Name: '"Tracy Zhao"', SchoolName: '"Harvard University - Harvard Law School"'});
+        expect(read_result.data).toContainEqual({Name: '"Joe Bruin"', SchoolName: '"Columbia University"'});
+        expect(read_result.data).toContainEqual({Name: '"Barack Obama"', SchoolName: '"Columbia University"'});
+
+        const read_result2 = await fuseki.read_data(simple_mapping.read_query);
+        expect(read_result2.data).toContainEqual({subject: '<http://students/BarackObama>', predicate: '<http://excql.org/relations/#school>', object: "<http://schools/Columbia>"});
     });
 });
 

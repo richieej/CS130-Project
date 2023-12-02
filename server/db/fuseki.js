@@ -135,7 +135,12 @@ class FusekiProxy {
             data: rows.map((row) => {
                 let obj = {};
                 for (let header of headers) {
-                    obj[header] = row[header].value;
+                    if (row[header].type === 'uri')
+                        obj[header] = `<${row[header].value}>`;
+                    else if (row[header].type === 'literal')
+                        obj[header] = `"${row[header].value}"`;
+                    else
+                        obj[header] = row[header].value;
                 }
                 return obj;
             }),

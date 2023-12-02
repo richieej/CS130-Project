@@ -46,6 +46,10 @@ class ExcelTable {
         };
     }
 
+    get_sheet_names() {
+        return this.workbook.worksheets.map(sheet => sheet.name);
+    }
+
     _add_headers_to_sheet(sheet, headers) {
         let columns = [];
         for (let header of headers) {
