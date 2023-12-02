@@ -153,6 +153,32 @@ class MappingDBProxy {
     _mapping_doc_to_mapping(doc) {
         return new Mapping(doc._id, doc.name, doc.owner_uuid, doc.read_query, doc.write_query);
     }
+
+    async delete_mapping(uuid) {
+        if (!this.connected) {
+            throw new Error("Not connected to the database");
+        }
+
+        let mapping_col = this.mapping_db.collection("mapping");
+        let result = await mapping_col.deleteOne({
+            _id: uuid
+        });
+
+        let deleted_mapping = undefined;
+        let result_err = undefined;
+
+        if (!result.acknowledged) {
+            result_err = new Error("write error");
+        }
+        else {
+            deleted_mapping = result.deletedCount;
+        }
+        
+        return {
+            err: result_err
+        }
+    }
+
 }
 
 module.exports = { MappingDBProxy, Mapping };

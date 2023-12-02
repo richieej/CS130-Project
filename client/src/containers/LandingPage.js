@@ -2,8 +2,11 @@ import React, { useContext } from "react";
 import { Link } from 'react-router-dom';
 import styled from 'styled-components'
 
+import LogoutButton from "../components/LogoutButton";
+
 import { Ctx } from '../components/StateProvider';
 import SessionStorage from "../utils/SessionStorage";
+import PageHeader from "../components/PageHeader";
 
 const Container = styled.div`
     height: 100%;
@@ -48,22 +51,6 @@ const Button = styled.button `
     margin: auto;
 `
 
-const LogoutButton = styled.button `
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    padding: 10px 1em;
-    width: 8vw;
-    border-radius: 20px;
-    background-color: black;
-    color: white;
-    font-size: 20px;
-    font-family: 'Concert One', sans-serif;
-    border: 2px solid black;
-    cursor: pointer;
-    margin: auto;
-`
-
 export default function Landing() {
     const { state, dispatch } = useContext(Ctx);
 
@@ -77,6 +64,7 @@ export default function Landing() {
 
     return (
         <Container>
+            <PageHeader title={''} />
             <Logo>EXCQL</Logo>
             <Slogan>Where Excel Meets Query, Simplifying Data Management for Non-Database Experts!</Slogan>
             {state.user === null ? (
@@ -93,15 +81,17 @@ export default function Landing() {
                 </ButtonContainer>
                 ) : (
                 <ButtonContainer>
-                    <Link to = "/login">
+                    <Link to = "/updateknowledgebase">
                         <Button> Update Knowledge Base </Button>
                     </Link>
                     {state.user.admin && <Link to = "/createmapping">
                         <Button> Create Mappings </Button>
                     </Link>}
+                    {state.user.admin && <Link to = "/editmapping">
+                        <Button> Edit Mappings </Button>
+                    </Link>}
                 </ButtonContainer>
             )}
-            {state.user !== null && <LogoutButton onClick={() => logout()}>Logout</LogoutButton>}
         </Container>
     );
 }

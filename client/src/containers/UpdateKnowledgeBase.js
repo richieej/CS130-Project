@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { Navigate } from "react-router-dom";
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import styled from 'styled-components'
 import PageHeader from '../components/PageHeader'
 import MappingList from '../components/MappingList';
+
+import { Ctx } from '../components/StateProvider';
+import MappingService from '../services/MappingService';
+import PopUpModal from '../components/PopUpModal';
 
 const Grid = styled.div`
     display: grid;
@@ -35,19 +40,19 @@ const MappingsContainer = styled.div`
     padding: 15px;
 `
 
-const UploadButton = styled.span`
+const UploadButton = styled.button`
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30%;
-    height: 2em;
-    border-radius: 20px;
+    padding: 8px 20px;
+    border-radius: 10px;
     background-color: #4098d6;
     color: white;
-    font-size: 25px;
+    font-size: 20px;
     font-family: 'Concert One', sans-serif;
     border: 2px solid black;
     margin: 10px;
+    cursor: pointer;
 `
 
 const UpdateButton = styled.button `
@@ -73,42 +78,48 @@ const MatchBox = styled.div`
 const MatchRow = styled.div`
     padding: 10px;
 `
+
+const Dropdown = styled.select`
+    width: 100%;
+`
+
+const initialModal = {
+    show: false,
+    success: true,
+    successText: '',
+    errorText: '',
+}
+
 // TODO Store the sheet to mapping pairs somewhere
 const UpdateKnowledgeBase = () => {
 
+    const [modal, setModal] = useState(initialModal);
     const [file, setFile] = useState(null)
     const [sheets, setSheets] = useState([])
     const [mappings, setMappings] = useState([])
     // a pair = {sheet name, mapping}
     const [dropdownPairs, setDropdownPairs] = useState([{sheetName: '', mappingName: '' }]);
+    const disabled = file === null;
 
-    const tempData = [
-        {mapping: "SELECT * FROM table1"},
-        {mapping: "SELECT * FROM table2"},
-        {mapping: "SELECT * FROM table3"},
-        {mapping: "SELECT * FROM table4"},
-        {mapping: "SELECT * FROM table5"},
-        {mapping: "SELECT * FROM table6"},
-        {mapping: "SELECT * FROM table7 SELECT * FROM table7"},
-        {mapping: "SELECT * FROM table8"},
-        {mapping: "SELECT * FROM table9 SELECT * FROM table9"},
-        {mapping: "SELECT * FROM table10"},
-        {mapping: "SELECT * FROM table11"},
-        {mapping: "SELECT * FROM table12"},
-    ]
+    const fetchMappings = async () => {
+        try {
+            const res = await MappingService.getAllMappings();
+            setMappings(res)
+        } catch(e) {
+            console.log(e);
+            setModal((prev) => ({
+            ...prev,
+            show: true,
+            success: false,
+            errorText: 'An error occurred trying to fetch the mappings',
+            }))
+        }
+    }
+
+    const closeModal = () => setModal(initialModal)
 
     useEffect(() => {
-        // const fetchData = async () => {
-        //     try {
-        //     const response = await fetch('http://localhost:8080/mappings');
-        //     const result = await response.json();
-        //     setData(result.items); 
-        //     } catch (error) {
-        //     console.error('Error fetching data:', error);
-        //     }
-        // };
-        // fetchData();
-        setMappings(tempData)
+        fetchMappings();
     }, []); // empty dependency array ensures that this effect runs once when the component mounts
 
     function onFileChange(event) {
@@ -120,12 +131,6 @@ const UpdateKnowledgeBase = () => {
     function onFileUpload(event) {
         event.preventDefault()
 
-        // Check if a file is selected
-        if (!file) {
-            alert("Please select a file.");
-            return;
-        }
-
         // Read the file content
         var reader = new FileReader();
         reader.onload = function(e) {
@@ -135,12 +140,10 @@ const UpdateKnowledgeBase = () => {
             const workbook = XLSX.read(data);
             const names = workbook.SheetNames;
             setSheets(workbook.SheetNames);
-            console.log(workbook)
-            console.log(names)
 
             // intialize pairings
             const initialPairs = names.reduce((acc, key) => {
-                acc[key] = ''; 
+                acc[key] = '';
                 return acc;
             }, {});
             setDropdownPairs(initialPairs);
@@ -149,8 +152,6 @@ const UpdateKnowledgeBase = () => {
     };
 
     function handleSheetSelect(event, row) {
-        // console.log(dropdownPairs)
-
         const selectedSheet = event.target.value;
         const sheetIndex = event.target.selectedIndex - 1;
         console.log('Selected Sheet:', selectedSheet);
@@ -187,42 +188,65 @@ const UpdateKnowledgeBase = () => {
             .then(response => {
                 // Handle the server response
                 console.log('Server response:', response.data);
-                alert("Success!");
+                setModal((prev) => ({
+                    ...prev,
+                    show: true,
+                    success: true,
+                    successText: 'Uploaded data successfully',
+                }))
             })
             .catch(error => {
                 // Handle errors
                 console.error('Error sending data to server:', error);
-                alert("Failed to update knowledge base. Please try again.");
+                setModal((prev) => ({
+                    ...prev,
+                    show: true,
+                    success: false,
+                    errorText: 'Failed to update knowledge base',
+                }))
             });
+    }
+
+    const { state } = useContext(Ctx);
+
+    if (state.user === null || !state.user.admin) {
+        return <Navigate to="/" replace />;
     }
 
     return (
         <div style={{ height: "fit-content"}}>
             <PageHeader title={"Update Knowledge Base"} />
+                <PopUpModal
+                isOpen={modal.show}
+                closeModal={closeModal}
+                success={modal.success}
+                successText={modal.successText}
+                errorText={modal.errorText}
+            />
             <Grid>
                 <MappingsContainer>
-                    <MappingList/>
+                    <MappingList data={mappings}/>
                 </MappingsContainer>
                 <RightHalf>
-                    <Box> 
-                        <p> 1. Upload Excel File </p> 
-                        <input 
+                    <Box>
+                        <p> 1. Upload Excel File </p>
+                        <input
                             type="file"
                             accept=".xlsx, .xls"
                             // style={{ display: 'none' }}
                             id="button-file"
                             onChange={onFileChange}
                         />
-                        <button onClick={onFileUpload}>Upload</button>
+                        <UploadButton disabled={disabled} onClick={onFileUpload} style={{backgroundColor: disabled ? 'gray': '#4098d6'}} >Upload</UploadButton>
                     </Box>
-                    <Box> 
+                    <Box>
                         <p> 2. Match Mappings with Excel Sheets </p>
                         <MatchBox>
                             {sheets.map((sheetName, idx) => (
                                 <MatchRow key={idx}>
                                     <label htmlFor="sheets">
-                                        <select name="sheets" id={`sheets-${idx}`}
-                                            onChange={(e) => handleSheetSelect(e, idx)} 
+                                        <Dropdown name="sheets" id={`sheets-${idx}`}
+                                            onChange={(e) => handleSheetSelect(e, idx)}
                                             required
                                         >
                                             <option value="placeholder">Select a sheet</option>
@@ -232,25 +256,25 @@ const UpdateKnowledgeBase = () => {
                                                     {sheetName}
                                                 </option>
                                             ))}
-                                        </select>
+                                        </Dropdown>
                                     </label>
                                     <label htmlFor="mappings">
-                                        <select name="mappings" id={`mappings-${idx}`}
+                                        <Dropdown name="mappings" id={`mappings-${idx}`}
                                             // value={value}
-                                            onChange={(e) => handleMapSelect(e, idx)} 
+                                            onChange={(e) => handleMapSelect(e, idx)}
                                             required
                                         >
                                             <option value="placeholder">Select a mapping</option>
                                             {/* Generate options based on mappings */}
-                                            {mappings.map((m, index) => (
-                                                <option 
-                                                    key={index} 
-                                                    value={m.mapping}
+                                            {mappings.map((item) => (
+                                                <option
+                                                    key={item.uuid}
+                                                    value={item.write_query}
                                                 >
-                                                    {m.mapping}
+                                                    {item.write_query}
                                                 </option>
                                             ))}
-                                        </select>
+                                        </Dropdown>
                                     </label>
                                 </MatchRow>
                             ))}
@@ -258,7 +282,11 @@ const UpdateKnowledgeBase = () => {
                     </Box>
                 </RightHalf>
             </Grid>
-            <UpdateButton onClick={handleUpdateClick} > Update </UpdateButton>
+            <UpdateButton
+                onClick={handleUpdateClick}
+                disabled={disabled}
+                style={{backgroundColor: disabled ? 'gray': '#39B045'}}
+            > Update </UpdateButton>
         </div>
     );
 }

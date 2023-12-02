@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styled from 'styled-components'
 
 
 const ScrollableContainer = styled.div`
-    max-height: 90%;
+    max-height: 70vh;
     max-width: 100%;
-    width: 40vw;
+    width: 100%;
     overflow-y: auto;
     font-family: 'Courier Prime', monospace;
     font-size: 20px;
+    margin-right: 0px;
 `
 
 const Header = styled.h1 `
@@ -16,50 +17,94 @@ const Header = styled.h1 `
     font-size: 40px;
     margin: 0;
     padding: 0;
+    display: flex;
+    justify-content: center;
 `
 
-const MappingList = () => {
-    const [data, setData] = useState([]);
+const QueryList = styled.ol`
+    padding-left: 50px;
+`
 
-    const tempData = [
-      {mapping: "SELECT * FROM table1"},
-      {mapping: "SELECT * FROM table2"},
-      {mapping: "SELECT * FROM table3"},
-      {mapping: "SELECT * FROM table4"},
-      {mapping: "SELECT * FROM table5"},
-      {mapping: "SELECT * FROM table6"},
-      {mapping: "SELECT * FROM table7 SELECT * FROM table7"},
-      {mapping: "SELECT * FROM table8"},
-      {mapping: "SELECT * FROM table9 SELECT * FROM table9"},
-      {mapping: "SELECT * FROM table10"},
-      {mapping: "SELECT * FROM table11"},
-      {mapping: "SELECT * FROM table12"},
-    ]
+const Query = styled.li `
+    padding: 10px;
+    margin: 5px;
+`
 
-    useEffect(() => {
-        // const fetchData = async () => {
-        //     try {
-        //     const response = await fetch('http://localhost:8080/mappings');
-        //     const result = await response.json();
-        //     setData(result.items); 
-        //     } catch (error) {
-        //     console.error('Error fetching data:', error);
-        //     }
-        // };
-        // fetchData();
-        setData(tempData)
-    }, []); // empty dependency array ensures that this effect runs once when the component mounts
+const QueryButton = styled.button`
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: 'Courier Prime', monospace;
+    font-size: 20px;
+    margin-right: 0px;
+    display: flex;
+    flex-direction: column;
+`
+
+const QueryName = styled.p`
+    font-weight: bold;
+    margin-bottom: 0px;
+    font-size: 22px;
+`
+
+const QueryDetails = styled.p `
+    margin: 0px;
+    margin-left: 15px;
+    margin-top: 7px;
+`
+
+const None = styled.p`
+    display: flex;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 30px;
+`
+
+const MappingList = ({ data, clickable, selected, setSelected }) => {
+  const handleClick = (item) => {
+    const selectedItem = {
+      uuid: item.uuid,
+      query_name: item.name,
+      read_query: item.read_query,
+      write_query: item.write_query
+    };
+
+    if (JSON.stringify(selectedItem) !== JSON.stringify(selected))
+      setSelected(selectedItem);
+    else
+      setSelected(null);
+  }
 
   return (
     <div>
       <Header> SPARQL Mappings</Header>
       <ScrollableContainer>
-        <ul>
+        {data.length > 0 ? (
+          <QueryList>
             {data.map(item => (
                 // Assuming each item has a 'mapping' property
-                <li> {item.mapping} </li>
+                <Query key={item.uuid}>
+                  {clickable ? (
+                    <QueryButton onClick={() => handleClick(item)}>
+                      <QueryName>{item.name}:</QueryName>
+                      <QueryDetails><strong style={{marginRight: '5px'}}>Created by:</strong>{item.owner_uuid}</QueryDetails>
+                      <QueryDetails><strong style={{marginRight: '5px'}}>Read Query:</strong>{item.read_query} </QueryDetails>
+                      <QueryDetails><strong style={{marginRight: '5px'}}>Write Query:</strong>{item.write_query}</QueryDetails>
+                    </QueryButton>
+                  ) : (
+                    <>
+                      <QueryName>{item.name}:</QueryName>
+                      <QueryDetails><strong style={{marginRight: '5px'}}>Created by:</strong>{item.owner_uuid}</QueryDetails>
+                      <QueryDetails><strong style={{marginRight: '5px'}}>Read Query:</strong>{item.read_query} </QueryDetails>
+                      <QueryDetails><strong style={{marginRight: '5px'}}>Write Query:</strong>{item.write_query}</QueryDetails>
+                    </>
+                  )}
+                </Query>
             ))}
-        </ul>
+          </QueryList>
+        ) : (
+          <None>No mappings to show</None>
+        )}
       </ScrollableContainer>
     </div>
   );
