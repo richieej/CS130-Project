@@ -45,4 +45,25 @@ mappingRoutes.route("/mappings/add").post(async function (req, response) {
 
 });
 
+// This section will help you edit existing admins.
+mappingRoutes.route("/mappings/edit").post(async function (req, response) {
+  if (!mapDB.isConnected) {
+    await mapDB.connect();
+  }
+
+  const uuid = req.query.uuid;
+  const { name, owner_uuid, read_query, write_query } = req.body;
+   
+  const del = await mapDB.delete_mapping(uuid);
+  
+  const res = await mapDB.create_new_mapping(name, read_query, write_query, owner_uuid);
+
+
+  if (res.error)
+    throw res.error;
+  console.log(res.uuid);
+  response.json(res.uuid);
+
+});
+
 module.exports = mappingRoutes;
