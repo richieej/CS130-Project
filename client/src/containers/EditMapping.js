@@ -57,7 +57,21 @@ const UpdateButton = styled.button `
     margin: 20px;
 `
 
-const initialNewMapping = {
+const DeleteButton = styled.button `
+    padding: 10px;
+    width: 12vw;
+    border-radius: 20px;
+    background-color: red;
+    color: white;
+    font-size: 20px;
+    font-family: 'Concert One', sans-serif;
+    border: 2px solid black;
+    cursor: pointer;
+    float: right;
+    margin: 20px;
+`
+
+const initialEditMapping = {
   query_name: '',
   read_query: '',
   write_query: '',
@@ -70,14 +84,18 @@ const initialModal = {
   errorText: '',
 }
 
-const CreateMapping = () => {
+const EditMapping = () => {
     const { state } = useContext(Ctx);
 
     const [modal, setModal] = useState(initialModal);
     const [mappings, setMappings] = useState([]);
-    const [newMapping, setNewMapping] = useState(initialNewMapping)
-    const { query_name, read_query, write_query } = newMapping;
+    const [selectedMapping, setSelectedMapping] = useState(null);
+    const [editMapping, setEditMapping] = useState(initialEditMapping)
+    const { uuid, query_name, read_query, write_query } = editMapping;
     const disabled = query_name.length === 0 || read_query.length === 0 || write_query.length === 0
+      || (selectedMapping && selectedMapping.query_name === query_name
+      && selectedMapping.read_query === read_query
+      && selectedMapping.write_query === write_query);
 
     const fetchMappings = async () => {
       try {
@@ -95,22 +113,53 @@ const CreateMapping = () => {
       }
     }
 
+    useEffect(() => {
+      if (selectedMapping) {
+        setEditMapping(selectedMapping);
+      }
+    }, [selectedMapping])
+
+    const handleDelete = async () => {
+      try {
+        await MappingService.deleteMapping(uuid);
+        setModal((prev) => ({
+          ...prev,
+          show: true,
+          success: true,
+          successText: 'Deleted mapping successfully',
+        }))
+        setEditMapping(initialEditMapping);
+        setSelectedMapping(null);
+        fetchMappings();
+      } catch(e) {
+        console.log(e);
+        setModal((prev) => ({
+          ...prev,
+          show: true,
+          success: false,
+          errorText: 'An error occurred trying to delete the mappings',
+        }))
+      }
+    }
+
     const submit = async () => {
       const mappingData = {
+        uuid: uuid,
         name: query_name,
         owner_uuid: state.user.email,
         read_query: read_query,
         write_query: write_query,
       }
       try {
-        await MappingService.createMapping(mappingData);
+        await MappingService.editMapping(mappingData);
         setModal((prev) => ({
           ...prev,
           show: true,
           success: true,
-          successText: 'Created mapping successfully',
+          successText: 'Edited mapping successfully',
         }))
-        setNewMapping(initialNewMapping);
+        setEditMapping(initialEditMapping);
+        setSelectedMapping(null);
         fetchMappings();
       } catch (e) {
         console.log(e);
@@ -118,7 +167,7 @@ const CreateMapping = () => {
           ...prev,
           show: true,
           success: false,
-          errorText: 'An error occurred trying to create the mappings',
+          errorText: 'An error occurred trying to edit the mappings',
         }))
       };
     }
@@ -127,7 +176,7 @@ const CreateMapping = () => {
 
     const handleChange = (e) => {
       const { name, value } = e.target;
-      setNewMapping((prev) => ({
+      setEditMapping((prev) => ({
         ...prev,
         [name]: value,
       }));
@@ -150,14 +199,14 @@ const CreateMapping = () => {
             successText={modal.successText}
             errorText={modal.errorText}
           />
-          <PageHeader title={"Create Mappings"} />
+          <PageHeader title={"Edit Mappings"} />
           <Grid>
               <MappingsContainer>
-                  <MappingList data={mappings}/>
+                  <MappingList clickable data={mappings} selected={selectedMapping} setSelected={setSelectedMapping}/>
               </MappingsContainer>
-              <RightHalf>
+              {selectedMapping !== null && <RightHalf>
                   <Box>
-                      <p> New Mapping Definition </p>
+                      <p> Edit Mapping Definition </p>
                       <TextInput
                         value={query_name}
                         placeholder="Enter query name"
@@ -179,19 +228,24 @@ const CreateMapping = () => {
                         name="write_query"
                         onChange={handleChange}
                       />
+                      <DeleteButton
+                        onClick={handleDelete}
+                      >
+                        Delete Mapping
+                      </DeleteButton>
                       <UpdateButton
                         onClick={submit}
                         disabled={disabled}
                         style={{backgroundColor: disabled ? 'gray': '#39B045'}}
                       >
-                        Create Mapping
+                        Edit Mapping
                       </UpdateButton>
                   </Box>
-              </RightHalf>
+              </RightHalf>}
           </Grid>
 
       </div>
     );
 }
 
-export default CreateMapping;
+export default EditMapping;

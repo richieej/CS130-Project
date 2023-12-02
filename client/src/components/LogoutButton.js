@@ -7,7 +7,7 @@ import SessionStorage from "../utils/SessionStorage";
 const Button = styled.button `
     position: fixed;
     top: 15px;
-    right: 15px;
+    right: 30px;
     padding: 10px 1em;
     width: 8vw;
     border-radius: 20px;

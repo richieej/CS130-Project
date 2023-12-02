@@ -9,8 +9,10 @@ import UpdateKnowledgeBase from "./containers/UpdateKnowledgeBase"
 import SignUp from "./containers/SignUp"
 import SessionStorage from "./utils/SessionStorage";
 import CreateMapping from "./containers/CreateMapping";
+import EditMapping from "./containers/EditMapping";
 
 import { Ctx, StateProvider } from './components/StateProvider';
+
 
 const Container = styled.div`
     height: 100vh;
@@ -59,6 +61,7 @@ const Home = () => {
         <Route exact path="/" element={<Landing />} />
         <Route exact path="/updateknowledgebase" element={<UpdateKnowledgeBase/>} />
         <Route exact path="/createmapping" element={<CreateMapping />} />
+        <Route exact path="/editmapping" element={<EditMapping />} />
         <Route path="*" element={<Landing />} />
       </Routes>
     </Container>

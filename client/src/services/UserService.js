@@ -37,7 +37,6 @@ async function createUser(userData) {
 		let data = (
 			await axios.post('/users/add', userData)
 		).data;
-		console.log(data);
 		return data;
 	} catch (e) {
 		console.log(e);
@@ -54,7 +53,6 @@ async function updateUser(userId, userData) {
 				},
 			}, userData)
 		).data;
-		console.log(data);
 		return data;
 	} catch (e) {
 		console.log(e);
@@ -65,7 +63,7 @@ async function updateUser(userId, userData) {
 async function deleteUser(userId) {
   try {
 		let data = (
-			await axios.delete('/users/', {
+			await axios.delete('/users', {
 				params: {
 					id: userId,
 				},

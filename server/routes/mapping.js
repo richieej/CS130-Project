@@ -13,7 +13,6 @@ mappingRoutes.route("/mappings").get(async function (req, res) {
   }
 
   const mappings = await mapDB.get_all_mappings();
-  console.log(mappings);
   res.json(mappings);
 });
 
@@ -25,7 +24,6 @@ mappingRoutes.route("/mappings/mapping").get(async function (req, res) {
 
   const uuid = req.query.uuid;
   const mapping = await mapDB.get_mapping_by_uuid(uuid);
-  console.log(mapping);
   res.json(mapping);
 });
 
@@ -40,7 +38,6 @@ mappingRoutes.route("/mappings/add").post(async function (req, response) {
 
   if (res.error)
     throw res.error;
-  console.log(res.uuid);
   response.json(res.uuid);
 
 });
@@ -51,19 +48,27 @@ mappingRoutes.route("/mappings/edit").post(async function (req, response) {
     await mapDB.connect();
   }
 
-  const uuid = req.query.uuid;
-  const { name, owner_uuid, read_query, write_query } = req.body;
-   
-  const del = await mapDB.delete_mapping(uuid);
-  
-  const res = await mapDB.create_new_mapping(name, read_query, write_query, owner_uuid);
+  const { uuid, name, owner_uuid, read_query, write_query } = req.body;
 
+  await mapDB.delete_mapping(uuid);
+  const res = await mapDB.create_new_mapping(name, read_query, write_query, owner_uuid);
 
   if (res.error)
     throw res.error;
-  console.log(res.uuid);
   response.json(res.uuid);
 
 });
+
+mappingRoutes.route("/mappings").delete(async function (req, response) {
+  if (!mapDB.isConnected) {
+    await mapDB.connect();
+  }
+
+  const uuid = req.query.uuid;
+
+  await mapDB.delete_mapping(uuid);
+
+  response.json('success');
+ });
 
 module.exports = mappingRoutes;

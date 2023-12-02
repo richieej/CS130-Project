@@ -37,7 +37,6 @@ async function createMapping(mappingData) {
 		let data = (
 			await axios.post('/mappings/add', mappingData)
 		).data;
-		console.log(data);
 		return data;
 	} catch (e) {
 		console.log(e);
@@ -45,4 +44,32 @@ async function createMapping(mappingData) {
 	}
 }
 
-export default { getMapping, getAllMappings, createMapping }
+async function editMapping(mappingData) {
+	try {
+		let data = (
+			await axios.post('/mappings/edit', mappingData)
+		).data;
+		return data;
+	} catch (e) {
+		console.log(e);
+		throw e;
+	}
+}
+
+async function deleteMapping(uuid) {
+  try {
+		let data = (
+			await axios.delete('/mappings', {
+				params: {
+					uuid: uuid,
+				},
+			})
+		).data;
+		return data;
+	} catch (e) {
+		console.log(e);
+		throw e;
+	}
+}
+
+export default { getMapping, getAllMappings, createMapping, editMapping, deleteMapping }

@@ -54,7 +54,6 @@ const SignUp = ({ isAdmin }) => {
 
     useEffect(() => {
         if (user !== null) {
-            console.log(user);
             createUser();
         }
     }, [user])
