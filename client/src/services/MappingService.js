@@ -6,12 +6,12 @@ const axios = Axios.create({
 	baseURL: BASE_URL,
 });
 
-async function getUser(email) {
+async function getMapping(uuid) {
 	try {
 		let data = (
-			await axios.get('/users/user', {
+			await axios.get('/mappings/mapping', {
 				params: {
-					email: email,
+					uuid: uuid,
 				},
 			})
 		).data;
@@ -22,9 +22,9 @@ async function getUser(email) {
 	}
 }
 
-async function getAllUsers() {
+async function getAllMappings() {
 	try {
-		const data = (await axios.get('/users')).data;
+		const data = (await axios.get('/mappings')).data;
 		return data;
 	} catch (e) {
 		console.log(e);
@@ -32,10 +32,10 @@ async function getAllUsers() {
 	}
 }
 
-async function createUser(userData) {
+async function createMapping(mappingData) {
   try {
 		let data = (
-			await axios.post('/users/add', userData)
+			await axios.post('/mappings/add', mappingData)
 		).data;
 		return data;
 	} catch (e) {
@@ -44,14 +44,10 @@ async function createUser(userData) {
 	}
 }
 
-async function updateUser(userId, userData) {
-  try {
+async function editMapping(mappingData) {
+	try {
 		let data = (
-			await axios.post('/users/update', {
-				params: {
-					id: userId,
-				},
-			}, userData)
+			await axios.post('/mappings/edit', mappingData)
 		).data;
 		return data;
 	} catch (e) {
@@ -60,12 +56,12 @@ async function updateUser(userId, userData) {
 	}
 }
 
-async function deleteUser(userId) {
+async function deleteMapping(uuid) {
   try {
 		let data = (
-			await axios.delete('/users', {
+			await axios.delete('/mappings', {
 				params: {
-					id: userId,
+					uuid: uuid,
 				},
 			})
 		).data;
@@ -76,4 +72,4 @@ async function deleteUser(userId) {
 	}
 }
 
-export default { getUser, getAllUsers, createUser, updateUser, deleteUser };
+export default { getMapping, getAllMappings, createMapping, editMapping, deleteMapping }

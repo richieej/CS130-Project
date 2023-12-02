@@ -67,7 +67,6 @@ const Login = () => {
 
     useEffect(() => {
         if (user !== null) {
-            console.log(user);
             fetchUser();
         }
     }, [user])
