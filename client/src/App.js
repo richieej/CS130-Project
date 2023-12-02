@@ -6,6 +6,7 @@ import { Route, Routes } from "react-router-dom";
 import Landing from "./containers/LandingPage";
 import Login from "./containers/Login";
 import UpdateKnowledgeBase from "./containers/UpdateKnowledgeBase"
+import DownloadExcelFile from "./containers/DownloadExcelFile";
 import SignUp from "./containers/SignUp"
 import SessionStorage from "./utils/SessionStorage";
 import CreateMapping from "./containers/CreateMapping";
@@ -59,7 +60,8 @@ const Home = () => {
     <Container>
       <Routes>
         <Route exact path="/" element={<Landing />} />
-        <Route exact path="/updateknowledgebase" element={<UpdateKnowledgeBase/>} />
+        <Route path="/updateknowledgebase" element={<UpdateKnowledgeBase/>} />
+        <Route path="/downloadexcelfile" element={<DownloadExcelFile/>} />
         <Route exact path="/createmapping" element={<CreateMapping />} />
         <Route exact path="/editmapping" element={<EditMapping />} />
         <Route path="*" element={<Landing />} />
