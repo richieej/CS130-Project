@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useJwt } from "react-jwt";
 
-const GoogleSignInButton = ({ setUser }) => {
+const GoogleAuthButton = ({ setUser }) => {
     const [token, setToken] = useState(null);
-    const { decodedToken, isExpired } = useJwt(token);
+    const { decodedToken } = useJwt(token);
 
     const handleCredentialResponse = (response) => {
-      console.log("Encoded JWT ID token: " + response.credential);
       setToken(response.credential);
     };
 
@@ -15,6 +14,7 @@ const GoogleSignInButton = ({ setUser }) => {
     }, [decodedToken]);
 
     useEffect(() => {
+      console.log(process.env.REACT_APP_GOOGLE_CLIENT_ID)
       const initGoogleSignIn = () => {
         window.google.accounts.id.initialize({
           client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
@@ -44,4 +44,4 @@ const GoogleSignInButton = ({ setUser }) => {
     );
   }
 
-  export default GoogleSignInButton;
+  export default GoogleAuthButton;

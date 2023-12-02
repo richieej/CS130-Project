@@ -74,6 +74,28 @@ class MappingDBProxy {
     }
 
     /**
+     * Finds a mapping in the database by the given uuid
+     * @param {String} uuid 
+     * @returns the resulting mapping
+     */
+    async get_mapping_by_uuid(uuid) {
+        if (!this.connected) {
+            throw new Error("Not connected to the database");
+        }
+        let mapping_col = this.mapping_db.collection("mapping");
+        let data = await mapping_col.findOne({_id : uuid }, {projection: {
+            _id: 1,
+            name: 1,
+            owner_uuid: 1,
+            read_query: 1,
+            write_query: 1
+        }});
+        let mapping = this._mapping_doc_to_mapping(data);
+
+        return mapping;
+    }
+
+    /**
      * Creates a new mapping in the database and returns the new mapping's UUID
      * @param {String} name 
      * @param {String} read_query 

@@ -73,7 +73,7 @@ class FusekiProxy {
      * Submit a SPARQL query to the Fuseki database
      * @param {string} query 
      * @param {function(data, resolve, reject)} on_end
-     * @returns {Promise}
+     * @returns {Promise<{headers:[string], data:[any], err}>}
      */
     async read_data(query) {
         const options = {
