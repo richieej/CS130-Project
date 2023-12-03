@@ -18,6 +18,8 @@ class MappingApplier {
         let table = new ExcelTable();
 
         for (const mapping of mappings) {
+            if (!mapping)
+                continue;
             const { read_query, name } = mapping;
             const read_result = await this.fuseki.read_data(read_query);
             
@@ -41,6 +43,8 @@ class MappingApplier {
         const sheet_names = table.get_sheet_names();
         for (let i = 0; i < mappings.length; i++) {
             const mapping = mappings[i];
+            if (!mapping)
+                continue;
             const name = sheet_names[i];
             const { read_query } = mapping;
             const old_data = await this.fuseki.read_data(read_query);
