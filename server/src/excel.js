@@ -22,7 +22,11 @@ class ExcelTable {
     }
 
     async readBuffer(buffer) {
-        return await this.workbook.xlsx.load(buffer);
+        await this.workbook.xlsx.load(buffer);
+    }
+
+    async readFile(filename) {
+        await this.workbook.xlsx.readFile(filename);
     }
 
     add_data(name, data_obj) {
