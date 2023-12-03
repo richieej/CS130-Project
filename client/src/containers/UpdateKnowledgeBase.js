@@ -108,10 +108,10 @@ const UpdateKnowledgeBase = () => {
         } catch(e) {
             console.log(e);
             setModal((prev) => ({
-            ...prev,
-            show: true,
-            success: false,
-            errorText: 'An error occurred trying to fetch the mappings',
+                ...prev,
+                show: true,
+                success: false,
+                errorText: 'An error occurred trying to fetch the mappings',
             }))
         }
     }
