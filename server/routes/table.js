@@ -35,7 +35,7 @@ tableRoutes.route("/tables/download").post(async (req, res) => {
 tableRoutes.route("/tables/upload").post(upload.single('file'), async (req, res) => {
     let table = new ExcelTable();
     console.log("req", req.body, req.file);
-    let mappings = req.body.pairs;
+    let mappings = JSON.parse(req.body.pairs);
     await table.readFile(req.file.path);
     
     const write_result = await applier.update_from_table(table, mappings);
