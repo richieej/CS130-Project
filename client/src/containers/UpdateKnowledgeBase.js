@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Navigate } from "react-router-dom";
-import axios from 'axios';
+import Axios from 'axios';
 import * as XLSX from 'xlsx';
 import styled from 'styled-components'
 import PageHeader from '../components/PageHeader'
@@ -9,6 +9,12 @@ import MappingList from '../components/MappingList';
 import { Ctx } from '../components/StateProvider';
 import MappingService from '../services/MappingService';
 import PopUpModal from '../components/PopUpModal';
+
+import { BASE_URL } from '../config';
+
+const axios = Axios.create({
+	baseURL: BASE_URL,
+});
 
 const Grid = styled.div`
     display: grid;
@@ -108,10 +114,10 @@ const UpdateKnowledgeBase = () => {
         } catch(e) {
             console.log(e);
             setModal((prev) => ({
-            ...prev,
-            show: true,
-            success: false,
-            errorText: 'An error occurred trying to fetch the mappings',
+                ...prev,
+                show: true,
+                success: false,
+                errorText: 'An error occurred trying to fetch the mappings',
             }))
         }
     }
@@ -182,29 +188,41 @@ const UpdateKnowledgeBase = () => {
 
     // TODO: submit dropdownPairs to server
     function handleUpdateClick() {
-        console.log(dropdownPairs);
+        const jsonPairs = JSON.stringify(dropdownPairs);
+        console.log("json:", jsonPairs);
+        
+        const formData = new FormData();
+        const fileInput = document.getElementById('file-input');
+        console.log(typeof fileInput.files[0]);
+        // const blob = new Blob([fileInput])
+        // console.log(typeof blob)
+        // console.log(blob instanceof Blob)
 
-        axios.post('https://your-api-endpoint.com/your-route', { data: dropdownPairs })
-            .then(response => {
-                // Handle the server response
-                console.log('Server response:', response.data);
-                setModal((prev) => ({
-                    ...prev,
-                    show: true,
-                    success: true,
-                    successText: 'Uploaded data successfully',
-                }))
-            })
-            .catch(error => {
-                // Handle errors
-                console.error('Error sending data to server:', error);
-                setModal((prev) => ({
-                    ...prev,
-                    show: true,
-                    success: false,
-                    errorText: 'Failed to update knowledge base',
-                }))
-            });
+        formData.append("file", fileInput.files[0]);
+        formData.append("pairs", jsonPairs);
+        console.log(...formData);
+
+        axios.post('/tables/upload', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+        }).then(response => {
+            console.log('Server response:', response.data);
+            setModal((prev) => ({
+                ...prev,
+                show: true,
+                success: true,
+                successText: 'Uploaded data successfully',
+            }))
+        }).catch(error => {
+            console.error('Error:', error);
+            setModal((prev) => ({
+                ...prev,
+                show: true,
+                success: false,
+                errorText: 'Failed to update knowledge base',
+            }))
+        });
     }
 
     const { state } = useContext(Ctx);
@@ -234,7 +252,7 @@ const UpdateKnowledgeBase = () => {
                             type="file"
                             accept=".xlsx, .xls"
                             // style={{ display: 'none' }}
-                            id="button-file"
+                            id="file-input"
                             onChange={onFileChange}
                         />
                         <UploadButton disabled={disabled} onClick={onFileUpload} style={{backgroundColor: disabled ? 'gray': '#4098d6'}} >Upload</UploadButton>
@@ -269,7 +287,7 @@ const UpdateKnowledgeBase = () => {
                                             {mappings.map((item) => (
                                                 <option
                                                     key={item.uuid}
-                                                    value={item.write_query}
+                                                    value={item.uuid}
                                                 >
                                                     {item.write_query}
                                                 </option>

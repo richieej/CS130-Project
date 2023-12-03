@@ -3,6 +3,7 @@ const stream = require('stream');
 const ExcelJS = require('exceljs');
 const fs = require('fs');
 const multer = require('multer');
+const os = require('os');
 const upload = multer({ dest: os.tmpdir() });
 
 const { MappingApplier } = require("../src/mapping_applier");
@@ -25,12 +26,16 @@ tableRoutes.route("/tables/download").post(async (req, res) => {
     fs.writeFileSync("test.xlsx", file);
 
     res.send(file);
+
+    console.log("mappings:", mappings);
+    console.log(file);
 });
 
 //receive a table, commit mapping
 tableRoutes.route("/tables/upload").post(upload.single('file'), async (req, res) => {
     let table = new ExcelTable();
-    let mappings = req.body.pairs;
+    console.log("req", req.body, req.file);
+    let mappings = JSON.parse(req.body.pairs);
     await table.readFile(req.file.path);
     
     const write_result = await applier.update_from_table(table, mappings);
