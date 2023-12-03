@@ -11,13 +11,14 @@ class MappingApplier {
 
     /**
      * Generates Excel sheets from the Fuseki knowledge base using a set of mappings
-     * @param {Mapping[]} mappings list of mappings, one for each Excel sheet
+     * @param {String[]} uuids list of mappings, one for each Excel sheet
      * @returns {Promise<ExcelTable>} the generated Excel table
      */
-    async table_from_mapping(mappings) {
+    async table_from_mapping(uuids) {
         let table = new ExcelTable();
 
-        for (const mapping of mappings) {
+        for (const uuid of uuids) {
+            const mapping = this.mapDB.get_mapping_by_uuid(uuid);
             if (!mapping)
                 continue;
             const { read_query, name } = mapping;
@@ -35,13 +36,14 @@ class MappingApplier {
     /**
      * Updates the Fuseki database using the table data and mapping queries
      * @param {ExcelTable} table 
-     * @param mappings
+     * @param {String: String} mappings
      * @returns {Promise<{error: any, results: boolean}[]>}
      */
     async update_from_table(table, pairs) {
         let results = [];
         for (const name of Object.keys(pairs)) {
-            const mapping = pairs[name];
+            const uuid = pairs[name];
+            const mapping = this.mapDB.get_mapping_by_uuid(uuid);
             if (!mapping)
                 continue;
             const { read_query } = mapping;
