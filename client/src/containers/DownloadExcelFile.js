@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Navigate } from "react-router-dom";
 import axios from 'axios';
-import * as XLSX from 'xlsx';
 
 import styled from 'styled-components'
 import PageHeader from '../components/PageHeader'
@@ -96,21 +95,14 @@ const DownloadExcelFile = () => {
     // TODO: send mappings to endpoint and get Excel file from endpoint
     const handleSubmit = async (e) => {
         console.log(checked)
-    
+
+        // const fs = require('fs');
         // Send selected mappings list to the server
         await axios.post('/tables/download', checked)
-            .then(response => response.json())
-            .then(data => {
-                // Convert data to worksheet
-                const ws = XLSX.utils.json_to_sheet(data);
-
-                // Create a workbook with a single sheet
-                // TODO: need to make multiple sheets
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Sheet 1');
-
-                // Create a Blob from the workbook
-                const fileBlob = XLSX.write(wb, { bookType: 'xlsx', type: 'blob' });
+            .then(response => {
+                
+                // Assuming the server responds with a file to download
+                const fileBlob = response.blob();
 
                 // Create a blob URL for the file
                 const fileUrl = URL.createObjectURL(fileBlob);
@@ -127,14 +119,13 @@ const DownloadExcelFile = () => {
                 // Remove the anchor element from the body
                 document.body.removeChild(downloadLink);
                 URL.revokeObjectURL(fileUrl);
-            
 
-            setModal((prev) => ({
-                ...prev,
-                show: true,
-                success: true,
-                successText: 'Successfully created Excel file to download',
-            }))
+                setModal((prev) => ({
+                    ...prev,
+                    show: true,
+                    success: true,
+                    successText: 'Successfully created Excel file to download',
+                }))
         })
         .catch (error => {
             console.log(error);
@@ -154,6 +145,13 @@ const DownloadExcelFile = () => {
     return (
         <div>
             <PageHeader title={"Download Excel File from Knowledge Base"} />
+            <PopUpModal
+                isOpen={modal.show}
+                closeModal={closeModal}
+                success={modal.success}
+                successText={modal.successText}
+                errorText={modal.errorText}
+            />
             <Form>
                 <form onSubmit={handleSubmit}>
                     <label htmlFor="mapping-selection"> Select Mappings </label>

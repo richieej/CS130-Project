@@ -183,28 +183,33 @@ const UpdateKnowledgeBase = () => {
     // TODO: submit dropdownPairs to server
     function handleUpdateClick() {
         console.log(dropdownPairs);
+        
+        const formData = new FormData();
+        const fileInput = document.getElementById('file-input');
+        formData.append('file', fileInput.files[0]);
+        formData.append('pairs', dropdownPairs);
 
-        axios.post('https://your-api-endpoint.com/your-route', { data: dropdownPairs })
-            .then(response => {
-                // Handle the server response
-                console.log('Server response:', response.data);
-                setModal((prev) => ({
-                    ...prev,
-                    show: true,
-                    success: true,
-                    successText: 'Uploaded data successfully',
-                }))
-            })
-            .catch(error => {
-                // Handle errors
-                console.error('Error sending data to server:', error);
-                setModal((prev) => ({
-                    ...prev,
-                    show: true,
-                    success: false,
-                    errorText: 'Failed to update knowledge base',
-                }))
-            });
+        axios.post('/tables/upload', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+        }).then(response => {
+            console.log('Server response:', response.data);
+            setModal((prev) => ({
+                ...prev,
+                show: true,
+                success: true,
+                successText: 'Uploaded data successfully',
+            }))
+        }).catch(error => {
+            console.error('Error:', error);
+            setModal((prev) => ({
+                ...prev,
+                show: true,
+                success: false,
+                errorText: 'Failed to update knowledge base',
+            }))
+        });
     }
 
     const { state } = useContext(Ctx);
@@ -234,7 +239,7 @@ const UpdateKnowledgeBase = () => {
                             type="file"
                             accept=".xlsx, .xls"
                             // style={{ display: 'none' }}
-                            id="button-file"
+                            id="file-input"
                             onChange={onFileChange}
                         />
                         <UploadButton disabled={disabled} onClick={onFileUpload} style={{backgroundColor: disabled ? 'gray': '#4098d6'}} >Upload</UploadButton>
