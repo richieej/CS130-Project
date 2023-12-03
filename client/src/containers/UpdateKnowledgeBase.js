@@ -192,6 +192,8 @@ const UpdateKnowledgeBase = () => {
         
         const formData = new FormData();
         const fileInput = document.getElementById('file-input');
+        console.log(fileInput.files[0]);
+
         formData.append('file', fileInput.files[0]);
         formData.append('pairs', dropdownPairs);
 
@@ -280,7 +282,7 @@ const UpdateKnowledgeBase = () => {
                                             {mappings.map((item) => (
                                                 <option
                                                     key={item.uuid}
-                                                    value={item.write_query}
+                                                    value={item.uuid}
                                                 >
                                                     {item.write_query}
                                                 </option>

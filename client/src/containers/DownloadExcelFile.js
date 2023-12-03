@@ -103,29 +103,17 @@ const DownloadExcelFile = () => {
     const handleSubmit = async (e) => {
         console.log(checked)
 
-        // const fs = require('fs');
         // Send selected mappings list to the server
-        await axios.post('/tables/download', checked)
+        await axios.post('/tables/download', {mappings: checked}, {responseType: 'blob'})
             .then(response => {
-                
-                // Assuming the server responds with a file to download
-                const fileBlob = response.blob();
-
-                // Create a blob URL for the file
-                const fileUrl = URL.createObjectURL(fileBlob);
-
-                // Create an anchor element to trigger download
-                const downloadLink = document.createElement('a');
-                downloadLink.href = fileUrl;
-                downloadLink.download = 'data.xls'; // Set the file name
-
-                // Append the anchor to the body and trigger the download
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-
-                // Remove the anchor element from the body
-                document.body.removeChild(downloadLink);
-                URL.revokeObjectURL(fileUrl);
+                console.log(response.data)
+                const url = window.URL.createObjectURL(response.data); 
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "data.xlsx"  
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
 
                 setModal((prev) => ({
                     ...prev,
