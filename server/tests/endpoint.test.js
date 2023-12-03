@@ -2,6 +2,7 @@ const request = require("supertest");
 const app = require("../server.js");
 const { MappingDBProxy } = require('../db/mapping.js');
 
+
 require("dotenv").config();
 
 const map_db = new MappingDBProxy();
@@ -135,4 +136,131 @@ describe("DELETE /mappings", () => {
         {_id: response_post.body}
       ));
     });
+});
+
+
+describe("GET /users", () => {
+      it("should get all the users", async () => {
+    
+        const response = await request(app)
+          .get("/users")
+          .set('Accept', 'application/json');
+  
+        expect(response.statusCode).toBe(200);
+        expect(response.body.length).toBeGreaterThan(6);
+      });
+});
+
+
+describe("GET /users/user", () => {
+  it("should get a user by id", async () => {
+
+    const response = await request(app)
+      .get("/users/user")
+      .query({email: "contactrohans@gmail.com"})
+      .set('Accept', 'application/json');
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.firstName).toEqual('Rohan');
+  });
+});
+
+describe("POST /users/add", () => {
+  it("should create a new user", async () => {
+
+    const response = await request(app)
+      .post("/users/add")
+      .send({email: "test@email.com", 
+            firstName: "felonius", 
+            lastName: "gru", 
+            admin: false})
+      .set('Accept', 'application/json');
+
+      const response_get = await request(app)
+        .get("/users")
+        .set('Accept', 'application/json');
+
+      expect(response.statusCode).toBe(200);
+
+      expect(response_get.body).toContainEqual(expect.objectContaining(
+        {email: "test@email.com", 
+        firstName: "felonius", 
+        lastName: "gru", 
+        admin: false}
+      ));
+
+      const response_del = await request(app)
+        .delete("/users")
+        .query({email:"test@email.com"})
+        .set('Accept', 'application/json');
+  })});
+
+
+  describe("POST /users/update", () => {
+    it("should edit a user by id", async () => {
+  
+      const response_post = await request(app)
+      .post("/users/add")
+      .send({email: "test@email.com", 
+            firstName: "felonius", 
+            lastName: "gru", 
+            admin: false})
+      .set('Accept', 'application/json');
+
+
+      const response = await request(app)
+        .post("/users/update")
+        .query({email: "test@email.com"})
+        .send({email: "updated@email.com", 
+              firstName: "update_test", 
+              lastName: "update_test", 
+              admin: true})
+        .set('Accept', 'application/json');
+  
+        const response_get = await request(app)
+          .get("/users")
+          .set('Accept', 'application/json');
+  
+        expect(response.statusCode).toBe(200);
+  
+        expect(response_get.body).toContainEqual(expect.objectContaining(
+          {email: "updated@email.com", 
+              firstName: "update_test", 
+              lastName: "update_test", 
+              admin: true}
+        ));
+
+        const response_del = await request(app)
+          .delete("/users")
+          .query({email:"updated@email.com"})
+          .set('Accept', 'application/json');
+    });
+
+
+    describe("DELETE /users", () => {
+      it("should delete specified user", async () => {
+    
+        const response_post = await request(app)
+        .post("/users/add")
+        .send({email: "test@email.com", 
+              firstName: "felonius", 
+              lastName: "gru", 
+              admin: false})
+        .set('Accept', 'application/json');
+  
+        const response = await request(app)
+          .delete("/users")
+          .query({email:"test@email.com"})
+          .set('Accept', 'application/json');
+  
+        const response_get = await request(app)
+          .get("/users")
+          .set('Accept', 'application/json');
+  
+        expect(response.statusCode).toBe(200);
+        expect(response_get.body).not.toContainEqual(expect.objectContaining(
+          {email: "test@email.com"}
+        ));
+      });
+  });
 });
