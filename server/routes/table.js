@@ -16,23 +16,17 @@ const applier = new MappingApplier();
 //receive a mapping, return a excel table (in the form of a stream)
 tableRoutes.route("/tables/download").post(async (req, res) => {
     let mappings = req.body.mappings;
-    if (Array.isArray(mappings)) {
-        const workbook = new ExcelJS.Workbook();
-        for (var i=0;i<mappings.length;i++) {
-            const table = await applier.table_from_mapping(mappings[i]);
-
-            const resStream = new stream.PassThrough();
-            await table.read(resStream);
-
-            resStream.pipe(res);
+    let resp, err = await applier.table_from_mapping(mappings);
+    if (resp) {
+        if (err) {
+            console.log(err);
         }
+        res.sendStatus(200) // success
     } else {
-        const table = await applier.table_from_mapping(mappings);
-
-        const resStream = new stream.PassThrough();  
-        await table.write(resStream);
-
-        resStream.pipe(res);
+        if (err) {
+            console.log(err);
+        }
+        res.sendStatus(400); // failed
     }
     
 });
@@ -40,11 +34,12 @@ tableRoutes.route("/tables/download").post(async (req, res) => {
 //receive a table, commit mapping
 tableRoutes.route("/tables/upload").post(async (req, res) => {
     let table = new ExcelTable();
-    const mapping = req.body.mapping;
+    const dropdownPairs = req.body.data;
+    const mappings = Object.values(dropdownPairs);
     const stream = req.body.stream;
     await table.read(stream);
 
-    const write_result = await applier.update_from_table(table, mapping);
+    const write_result = await applier.update_from_table(table, mappings);
     res.json(write_result);
   
 })
