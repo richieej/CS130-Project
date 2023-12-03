@@ -18,6 +18,24 @@ class Mapping {
     // get owner_uuid() { return this.owner_uuid; }
     // get read_query() { return this.read_query; }
     // get write_query() { return this.write_query; }
+
+    get_write_with_data(new_data, old_data) {
+        const m = Math.max(new_data.data.length, old_data.data.length);
+        let final_query = "";
+        for (let i = 0; i < m; i++) {
+            let copy_query = this.write_query.slice();
+            for (let header of new_data.headers) {
+                const new_val = i < new_data.data.length ? new_data.data[i][header] : undefined;
+                copy_query = copy_query.replace(`<<NEW.${header}>>`, `${ new_val !== undefined ? new_val : '""' }`);
+            }
+            for (let header of old_data.headers) {
+                const old_val = i < old_data.data.length ? old_data.data[i][header] : undefined;
+                copy_query = copy_query.replace(`<<OLD.${header}>>`, `${ old_val !== undefined ? old_val : '""' }`);
+            }
+            final_query += copy_query + "\n";
+        }
+        return final_query;
+    }
 }
 
 class MappingDBProxy {

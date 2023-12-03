@@ -25,6 +25,11 @@ class FusekiProxy {
         return false;
     }
 
+    /**
+     * Submits a write query to the Fuseki database
+     * @param {String} query 
+     * @returns {Promise<{error:any, results: boolean}>}
+     */
     async write_data(query) {
         const options = {
             hostname: this.hostname,
@@ -73,7 +78,7 @@ class FusekiProxy {
      * Submit a SPARQL query to the Fuseki database
      * @param {string} query 
      * @param {function(data, resolve, reject)} on_end
-     * @returns {Promise<{headers:[string], data:[any], err}>}
+     * @returns {Promise<{headers:[string], data:[any], error}>}
      */
     async read_data(query) {
         const options = {
@@ -123,9 +128,22 @@ class FusekiProxy {
             req.end();
         });
 
+        const headers = data.head ? data.head.vars : [];
+        const rows = data.results ? data.results.bindings : [];
         return {
-            headers: data.head ? data.head.vars : [],
-            data: data.results ? data.results.bindings : [],
+            headers: headers,
+            data: rows.map((row) => {
+                let obj = {};
+                for (let header of headers) {
+                    if (row[header].type === 'uri')
+                        obj[header] = `<${row[header].value}>`;
+                    else if (row[header].type === 'literal')
+                        obj[header] = `"${row[header].value}"`;
+                    else
+                        obj[header] = row[header].value;
+                }
+                return obj;
+            }),
             error: data.error
         };
     }
