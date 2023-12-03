@@ -20,12 +20,6 @@ map_db.connect();
 //receive a mapping, return a excel table (in the form of a stream)
 tableRoutes.route("/tables/download").post(async (req, res) => {
     let mappings = req.body.mappings;
-<<<<<<< HEAD
-    mappings = await Promise.all(mappings.map(async (uuid) => {
-        return await map_db.get_mapping_by_uuid(uuid);
-    }));
-=======
->>>>>>> main
     let table = await applier.table_from_mapping(mappings);
     const file = await table.writeBuffer();
 
@@ -38,20 +32,10 @@ tableRoutes.route("/tables/download").post(async (req, res) => {
 });
 
 //receive a table, commit mapping
-<<<<<<< HEAD
 tableRoutes.route("/tables/upload", upload.single('file')).post(async (req, res) => {
-    console.log("Fields", req.body)
-
     let table = new ExcelTable();
-    let mappings = Object.values(req.body.data);
-    mappings = await Promise.all(mappings.map(async (uuid) => {
-        return await map_db.get_mapping_by_uuid(uuid);
-    }));
-=======
-tableRoutes.route("/tables/upload", upload.single('file'), upload.fields([])).post(async (req, res) => {
-    let table = new ExcelTable();
+    console.log("req", req.body, req.file);
     let mappings = req.body.pairs;
->>>>>>> main
     await table.readBuffer(req.file.buffer);
 
     const write_result = await applier.update_from_table(table, mappings);

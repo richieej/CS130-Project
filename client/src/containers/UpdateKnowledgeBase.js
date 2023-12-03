@@ -188,14 +188,16 @@ const UpdateKnowledgeBase = () => {
 
     // TODO: submit dropdownPairs to server
     function handleUpdateClick() {
-        console.log(dropdownPairs);
+        const jsonPairs = JSON.stringify(dropdownPairs);
+        console.log("json:", jsonPairs);
         
         const formData = new FormData();
         const fileInput = document.getElementById('file-input');
         console.log(fileInput.files[0]);
 
-        formData.append('file', fileInput.files[0]);
-        formData.append('pairs', dropdownPairs);
+        formData.append("file", fileInput.files[0]);
+        formData.append("pairs", jsonPairs);
+        console.log(...formData);
 
         axios.post('/tables/upload', formData, {
             headers: {
