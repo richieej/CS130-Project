@@ -94,7 +94,7 @@ class MappingDBProxy {
     /**
      * Finds a mapping in the database by the given uuid
      * @param {String} uuid 
-     * @returns the resulting mapping
+     * @returns {Promise<Mapping | undefined>}the resulting mapping
      */
     async get_mapping_by_uuid(uuid) {
         if (!this.connected) {
@@ -108,6 +108,8 @@ class MappingDBProxy {
             read_query: 1,
             write_query: 1
         }});
+        if (!data)
+            return undefined;
         let mapping = this._mapping_doc_to_mapping(data);
 
         return mapping;

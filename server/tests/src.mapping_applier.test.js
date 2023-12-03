@@ -137,7 +137,19 @@ describe('Using Students and Schools dataset', () => {
         expect(school_mapping.uuid).toEqual(school_create_result.uuid);
     });
 
-    // TODO: do we need a delete?
+    afterAll(async () => {
+        const simple_mapping_delete = await map_db.delete_mapping(simple_mapping.uuid);
+        expect(simple_mapping_delete.err).toBeFalsy();
+
+        const confirm_simple_mapping_delete = await map_db.get_mapping_by_uuid(simple_mapping.uuid);
+        expect(confirm_simple_mapping_delete).toBeUndefined();
+
+        const school_mapping_delete = await map_db.delete_mapping(school_mapping.uuid);
+        expect(school_mapping_delete.err).toBeFalsy();
+
+        const confirm_school_mapping_delete = await map_db.get_mapping_by_uuid(school_mapping.uuid);
+        expect(confirm_school_mapping_delete).toBeUndefined();
+    });
 
     test('download excel from simple subject predicate object mapping', async () => {
         const table = await applier.table_from_mapping([simple_mapping]);
