@@ -14,7 +14,7 @@ const tableRoutes = express.Router();
 const applier = new MappingApplier();
 
 //receive a mapping, return a excel table (in the form of a stream)
-tableRoutes.route("/tables/download").post(async (req, res) => {
+tableRoutes.route("/tables/download").get(async (req, res) => {
     try {
         let mappings = req.body.mappings;
         let table = await applier.table_from_mapping(mappings);
