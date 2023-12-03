@@ -2,8 +2,8 @@ const express = require("express");
 const stream = require('stream');
 const ExcelJS = require('exceljs');
 const fs = require('fs');
-const multer = require('multer')
-const upload = multer({ dest: os.tmpdir() })
+const multer = require('multer');
+const upload = multer({ dest: os.tmpdir() });
 
 const { MappingApplier } = require("../src/mapping_applier");
 const { ExcelTable } = require('../src/excel.js');
@@ -28,14 +28,14 @@ tableRoutes.route("/tables/download").post(async (req, res) => {
 });
 
 //receive a table, commit mapping
-tableRoutes.route("/tables/upload", upload.single('file'), upload.fields([])).post(async (req, res) => {
+tableRoutes.route("/tables/upload").post(upload.single('file'), async (req, res) => {
     let table = new ExcelTable();
     let mappings = req.body.pairs;
-    await table.readBuffer(req.file.buffer);
-
+    await table.readFile(req.file.path);
+    
     const write_result = await applier.update_from_table(table, mappings);
     res.json(write_result);
-})
+});
 
 module.exports = tableRoutes;
 
