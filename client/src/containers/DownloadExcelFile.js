@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Navigate } from "react-router-dom";
-import axios from 'axios';
+import Axios from 'axios';
 
 import styled from 'styled-components'
 import PageHeader from '../components/PageHeader'
@@ -9,6 +9,12 @@ import PopUpModal from '../components/PopUpModal';
 
 import MappingService from '../services/MappingService';
 import { Ctx } from '../components/StateProvider';
+
+import { BASE_URL } from '../config';
+
+const axios = Axios.create({
+	baseURL: BASE_URL,
+});
 
 
 const Form = styled.div`
@@ -83,6 +89,7 @@ const DownloadExcelFile = () => {
       
     // Add/Remove checked item from list
     const handleCheck = (event) => {
+        console.log(event.target.value)
         var updatedList = [...checked];
         if (event.target.checked) {
             updatedList = [...checked, event.target.value];
@@ -156,11 +163,11 @@ const DownloadExcelFile = () => {
                 <form onSubmit={handleSubmit}>
                     <label htmlFor="mapping-selection"> Select Mappings </label>
                     <ListContainer>
-                        {mappings.map((item, index) => (
-                            <div key={index}>
+                        {mappings.map((item) => (
+                            <div>
                                 <input 
                                     key={item.uuid} 
-                                    value={item.read_query} 
+                                    value={item.uuid} 
                                     type="checkbox" 
                                     onChange={handleCheck} />
                                 <span> {item.read_query} </span>

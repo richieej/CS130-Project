@@ -81,8 +81,7 @@ const MappingList = ({ data, clickable, selected, setSelected }) => {
       <ScrollableContainer>
         {data.length > 0 ? (
           <QueryList>
-            {data.map(item => (
-                // Assuming each item has a 'mapping' property
+            {data.map(item = (
                 <Query key={item.uuid}>
                   {clickable ? (
                     <QueryButton onClick={() => handleClick(item)}>

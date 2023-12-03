@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Navigate } from "react-router-dom";
-import axios from 'axios';
+import Axios from 'axios';
 import * as XLSX from 'xlsx';
 import styled from 'styled-components'
 import PageHeader from '../components/PageHeader'
@@ -9,6 +9,12 @@ import MappingList from '../components/MappingList';
 import { Ctx } from '../components/StateProvider';
 import MappingService from '../services/MappingService';
 import PopUpModal from '../components/PopUpModal';
+
+import { BASE_URL } from '../config';
+
+const axios = Axios.create({
+	baseURL: BASE_URL,
+});
 
 const Grid = styled.div`
     display: grid;

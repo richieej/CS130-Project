@@ -3,6 +3,7 @@ const stream = require('stream');
 const ExcelJS = require('exceljs');
 const fs = require('fs');
 const multer = require('multer')
+const os = require('os');
 const upload = multer({ dest: os.tmpdir() })
 
 const { MappingApplier } = require("../src/mapping_applier");
@@ -15,6 +16,7 @@ const applier = new MappingApplier();
 //receive a mapping, return a excel table (in the form of a stream)
 tableRoutes.route("/tables/download").post(async (req, res) => {
     let mappings = req.body.mappings;
+    console.log(mappings)
     let table = await applier.table_from_mapping(mappings);
     const file = await table.writeBuffer();
 
