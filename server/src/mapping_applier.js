@@ -11,13 +11,17 @@ class MappingApplier {
 
     /**
      * Generates Excel sheets from the Fuseki knowledge base using a set of mappings
-     * @param {Mapping[]} mappings list of mappings, one for each Excel sheet
+     * @param {String[]} uuids list of mappings, one for each Excel sheet
      * @returns {Promise<ExcelTable>} the generated Excel table
      */
-    async table_from_mapping(mappings) {
+    async table_from_mapping(uuids) {
+        await this.mapDB.connect();
         let table = new ExcelTable();
 
-        for (const mapping of mappings) {
+        for (const uuid of uuids) {
+            const mapping = await this.mapDB.get_mapping_by_uuid(uuid);
+            if (!mapping)
+                continue;
             const { read_query, name } = mapping;
             const read_result = await this.fuseki.read_data(read_query);
             
@@ -27,21 +31,26 @@ class MappingApplier {
 
             table.add_data(name, read_result);
         }
+
+        await this.mapDB.disconnect();
         return table;
     }
 
     /**
      * Updates the Fuseki database using the table data and mapping queries
      * @param {ExcelTable} table 
-     * @param {Mapping[]} mappings
+     * @param {String: String} mappings
      * @returns {Promise<{error: any, results: boolean}[]>}
      */
-    async update_from_table(table, mappings) {
+    async update_from_table(table, pairs) {
+        await this.mapDB.connect();
+
         let results = [];
-        const sheet_names = table.get_sheet_names();
-        for (let i = 0; i < mappings.length; i++) {
-            const mapping = mappings[i];
-            const name = sheet_names[i];
+        for (const name of Object.keys(pairs)) {
+            const uuid = pairs[name];
+            const mapping = await this.mapDB.get_mapping_by_uuid(uuid);
+            if (!mapping)
+                continue;
             const { read_query } = mapping;
             const old_data = await this.fuseki.read_data(read_query);
             const new_data = table.get_data(name);
@@ -49,6 +58,8 @@ class MappingApplier {
             const write_result = await this.fuseki.write_data(write_query);
             results.push(write_result);
         }
+
+        await this.mapDB.disconnect();
         return results;
     }
 }

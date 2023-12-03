@@ -56,6 +56,12 @@ describe('Mapping read and write', () => {
         expect(mapping.uuid).toEqual(create_result.uuid);
         expect(mapping.read_query).toEqual(read_query);
         expect(mapping.write_query).toEqual(write_query);
+
+        const delete_result = await mapDB.delete_mapping(mapping.uuid);
+        expect(delete_result.err).toBeFalsy();
+
+        const confirm_delete = await mapDB.get_mapping_by_uuid(mapping.uuid);
+        expect(confirm_delete).toBeUndefined();
     });
 });
 
@@ -120,3 +126,17 @@ test('fill mapping with write data', () => {
     expect(query.includes('?school1 eql:name "University of Delaware".')).toBe(true);
     expect(query.includes('?school2 eql:name "".')).toBe(true);
 });
+
+// test('uuid exists', async () => {
+//     const mapDB = new MappingDBProxy();
+//     await mapDB.connect();
+//     expect(mapDB.isConnected).toBe(true);
+
+//     const mapping = await mapDB.get_mapping_by_uuid("ea17a9b7-33cd-4f75-8bab-9502d2ed4ff5");
+//     expect(mapping).toBeDefined();
+
+//     await mapDB.disconnect();
+//     expect(mapDB.isConnected).toBe(false);
+
+//     console.log(mapping);
+// });

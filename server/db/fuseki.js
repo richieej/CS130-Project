@@ -25,6 +25,45 @@ class FusekiProxy {
         return false;
     }
 
+    async create_dataset() {
+        if (await this._is_dataset_defined())
+            return {error: undefined, results: true};
+
+        const options = {
+            hostname: this.hostname,
+            port: this.port,
+            path: `/$/datasets?dbName=${this.dataset_name}&dbType=tdb`,
+            method: 'POST',
+        }
+
+        return await new Promise((resolve, reject) => {
+            const req = http.request(options, (res) => {
+                if (res.statusCode < 200 || res.statusCode >= 300) {
+                    logger.error(`Fuseki add dataset ended with bad status code: ${res.statusCode}`);
+                    resolve({
+                        error: `Bad status code ${res.statusCode}`,
+                        results: false
+                    });
+                }
+                else{
+                    resolve({
+                        error: undefined,
+                        results: true
+                    });
+                }
+            });
+        
+            // reject on request error
+            req.on('error', err => {
+                resolve({
+                    error: err,
+                    results: false
+                });
+            });
+            req.end();
+        });
+    }
+
     /**
      * Submits a write query to the Fuseki database
      * @param {String} query 
@@ -146,6 +185,55 @@ class FusekiProxy {
             }),
             error: data.error
         };
+    }
+
+    async _is_dataset_defined() {
+        const options = {
+            hostname: this.hostname,
+            port: this.port,
+            path: `/$/datasets`,
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        }
+
+        const result = await new Promise((resolve, reject) => {
+            const req = http.request(options, (res) => {
+                if (res.statusCode < 200 || res.statusCode >= 300) {
+                    logger.error(`Fuseki get datasets ended with bad status code: ${res.statusCode}`);
+                    resolve({
+                        error: `Bad status code: ${res.statusCode}`
+                    });
+                }
+                else {
+                    var data = [];
+                    res.on('data', chunk => {
+                        data.push(chunk);
+                    });
+                    res.on('end', () => {
+                        const query_result = JSON.parse(data[0]);
+                        logger.debug(`Got dataset response: '${JSON.stringify(query_result)}'`);
+                        resolve(query_result);
+                    });
+                }
+            });
+        
+            // reject on request error
+            req.on('error', err => {
+                resolve({
+                    error: err
+                });
+            });
+            req.end();
+        });
+
+        const datasets = result.error ? [] : result.datasets;
+        for (const dataset of datasets) {
+            if (dataset['ds.name'] == `/${this.dataset_name}`)
+                return true;
+        }
+        return false;
     }
 }
 

@@ -5,7 +5,6 @@ const { ExcelTable } = require('../src/excel.js');
 
 const stream = require('stream');
 const ExcelJS = require('exceljs');
-const fs = require('fs');
 
 const applier = new MappingApplier();
 const fuseki = new FusekiProxy("Main");
@@ -13,6 +12,14 @@ const map_db = new MappingDBProxy();
 
 beforeAll(async () => {
     await map_db.connect();
+    expect(map_db.isConnected).toBe(true);
+
+    const has_dataset = await fuseki.create_dataset();
+    expect(has_dataset.error).toBeFalsy();
+    expect(has_dataset.results).toBe(true);
+
+    const connection = await fuseki.test_connection();
+    expect(connection).toBe(true);
 });
 
 afterAll(async () => {
@@ -128,10 +135,22 @@ describe('Using Students and Schools dataset', () => {
         expect(school_mapping.uuid).toEqual(school_create_result.uuid);
     });
 
-    // TODO: do we need a delete?
+    afterAll(async () => {
+        const simple_mapping_delete = await map_db.delete_mapping(simple_mapping.uuid);
+        expect(simple_mapping_delete.err).toBeFalsy();
+
+        const confirm_simple_mapping_delete = await map_db.get_mapping_by_uuid(simple_mapping.uuid);
+        expect(confirm_simple_mapping_delete).toBeUndefined();
+
+        const school_mapping_delete = await map_db.delete_mapping(school_mapping.uuid);
+        expect(school_mapping_delete.err).toBeFalsy();
+
+        const confirm_school_mapping_delete = await map_db.get_mapping_by_uuid(school_mapping.uuid);
+        expect(confirm_school_mapping_delete).toBeUndefined();
+    });
 
     test('download excel from simple subject predicate object mapping', async () => {
-        const table = await applier.table_from_mapping([simple_mapping]);
+        const table = await applier.table_from_mapping([simple_mapping.uuid]);
         expect(table).toBeDefined();
     
         const passStream = new stream.PassThrough();        
@@ -176,7 +195,7 @@ describe('Using Students and Schools dataset', () => {
     });
     
     test('download excel from student school mapping', async () => {
-        const table = await applier.table_from_mapping([school_mapping]);
+        const table = await applier.table_from_mapping([school_mapping.uuid]);
         expect(table).toBeDefined();
 
         const passStream = new stream.PassThrough();        
@@ -216,7 +235,7 @@ describe('Using Students and Schools dataset', () => {
             ]
         });
         
-        const write_result = await applier.update_from_table(table, [school_mapping]);
+        const write_result = await applier.update_from_table(table, {"Students and Schools": school_mapping.uuid});
         expect(write_result[0].results).toBe(true);
         expect(write_result[0].error).toBeUndefined();
 
@@ -231,7 +250,7 @@ describe('Using Students and Schools dataset', () => {
     });
 
     test('download excel with multiple sheets', async () => {
-        const table = await applier.table_from_mapping([simple_mapping, school_mapping]);
+        const table = await applier.table_from_mapping([simple_mapping.uuid, school_mapping.uuid]);
         expect(table).toBeDefined();
 
         const passStream = new stream.PassThrough();        
@@ -320,7 +339,7 @@ describe('Using Students and Schools dataset', () => {
             ]
         });
         
-        const write_result = await applier.update_from_table(table, [simple_mapping, school_mapping]);
+        const write_result = await applier.update_from_table(table, {"Sheet1": simple_mapping.uuid, "Sheet2": school_mapping.uuid});
         expect(write_result[0].results).toBe(true);
         expect(write_result[0].error).toBeUndefined();
         expect(write_result[1].results).toBe(true);

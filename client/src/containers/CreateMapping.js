@@ -82,8 +82,8 @@ const CreateMapping = () => {
     const fetchMappings = async () => {
       try {
         const res = await MappingService.getAllMappings();
-        const filteredMappings = res.filter((obj) => obj.owner_uuid === state.user.email);
-        setMappings(filteredMappings)
+        // const filteredMappings = res.filter((obj) => obj.owner_uuid === state.user.email);
+        setMappings(res)
       } catch(e) {
         console.log(e);
         setModal((prev) => ({
