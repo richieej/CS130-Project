@@ -15,6 +15,7 @@ class MappingApplier {
      * @returns {Promise<ExcelTable>} the generated Excel table
      */
     async table_from_mapping(uuids) {
+        await this.mapDB.connect();
         let table = new ExcelTable();
 
         for (const uuid of uuids) {
@@ -30,6 +31,8 @@ class MappingApplier {
 
             table.add_data(name, read_result);
         }
+
+        await this.mapDB.disconnect();
         return table;
     }
 
@@ -40,6 +43,8 @@ class MappingApplier {
      * @returns {Promise<{error: any, results: boolean}[]>}
      */
     async update_from_table(table, pairs) {
+        await this.mapDB.connect();
+
         let results = [];
         for (const name of Object.keys(pairs)) {
             const uuid = pairs[name];
@@ -53,6 +58,8 @@ class MappingApplier {
             const write_result = await this.fuseki.write_data(write_query);
             results.push(write_result);
         }
+
+        await this.mapDB.disconnect();
         return results;
     }
 }
