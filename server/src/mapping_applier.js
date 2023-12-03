@@ -35,17 +35,15 @@ class MappingApplier {
     /**
      * Updates the Fuseki database using the table data and mapping queries
      * @param {ExcelTable} table 
-     * @param {Mapping[]} mappings
+     * @param mappings
      * @returns {Promise<{error: any, results: boolean}[]>}
      */
-    async update_from_table(table, mappings) {
+    async update_from_table(table, pairs) {
         let results = [];
-        const sheet_names = table.get_sheet_names();
-        for (let i = 0; i < mappings.length; i++) {
-            const mapping = mappings[i];
+        for (const name of Object.keys(pairs)) {
+            const mapping = pairs[name];
             if (!mapping)
                 continue;
-            const name = sheet_names[i];
             const { read_query } = mapping;
             const old_data = await this.fuseki.read_data(read_query);
             const new_data = table.get_data(name);
