@@ -18,7 +18,7 @@ class MappingApplier {
         let table = new ExcelTable();
 
         for (const uuid of uuids) {
-            const mapping = this.mapDB.get_mapping_by_uuid(uuid);
+            const mapping = await this.mapDB.get_mapping_by_uuid(uuid);
             if (!mapping)
                 continue;
             const { read_query, name } = mapping;
@@ -43,7 +43,7 @@ class MappingApplier {
         let results = [];
         for (const name of Object.keys(pairs)) {
             const uuid = pairs[name];
-            const mapping = this.mapDB.get_mapping_by_uuid(uuid);
+            const mapping = await this.mapDB.get_mapping_by_uuid(uuid);
             if (!mapping)
                 continue;
             const { read_query } = mapping;
