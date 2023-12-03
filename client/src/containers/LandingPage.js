@@ -33,7 +33,7 @@ const Slogan = styled.h2`
 
 const ButtonContainer = styled.div`
     display: flex;
-    width: 50%;
+    width: 60%;
     justify-content: space-between;
     margin: 2em;
 `
@@ -83,6 +83,9 @@ export default function Landing() {
                 <ButtonContainer>
                     <Link to = "/updateknowledgebase">
                         <Button> Update Knowledge Base </Button>
+                    </Link>
+                    <Link to = "/downloadexcelfile">
+                        <Button> Download Data </Button>
                     </Link>
                     {state.user.admin && <Link to = "/createmapping">
                         <Button> Create Mappings </Button>
