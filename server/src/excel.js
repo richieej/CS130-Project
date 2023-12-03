@@ -21,6 +21,10 @@ class ExcelTable {
         await this.workbook.xlsx.read(stream);
     }
 
+    async readBuffer(buffer) {
+        return await this.workbook.xlsx.load(buffer);
+    }
+
     add_data(name, data_obj) {
         const {headers, data} = data_obj;
         const sheet = this.workbook.addWorksheet(name);
