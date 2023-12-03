@@ -5,7 +5,6 @@ const { ExcelTable } = require('../src/excel.js');
 
 const stream = require('stream');
 const ExcelJS = require('exceljs');
-const fs = require('fs');
 
 const applier = new MappingApplier();
 const fuseki = new FusekiProxy("Main");
@@ -13,6 +12,16 @@ const map_db = new MappingDBProxy();
 
 beforeAll(async () => {
     await map_db.connect();
+    expect(map_db.isConnected).toBe(true);
+
+    console.log(await fuseki._is_dataset_defined());
+
+    const has_dataset = await fuseki.create_dataset();
+    expect(has_dataset.error).toBeFalsy();
+    expect(has_dataset.results).toBe(true);
+
+    const connection = await fuseki.test_connection();
+    expect(connection).toBe(true);
 });
 
 afterAll(async () => {
