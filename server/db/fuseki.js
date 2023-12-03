@@ -29,8 +29,6 @@ class FusekiProxy {
         if (await this._is_dataset_defined())
             return {error: undefined, results: true};
 
-        console.log("Creating database")
-
         const options = {
             hostname: this.hostname,
             port: this.port,
