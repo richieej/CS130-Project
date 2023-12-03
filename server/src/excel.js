@@ -13,6 +13,10 @@ class ExcelTable {
         await this.workbook.xlsx.write(stream);
     }
 
+    async writeBuffer() {
+        return await this.workbook.xlsx.writeBuffer()
+    }
+
     async read(stream) {
         await this.workbook.xlsx.read(stream);
     }
