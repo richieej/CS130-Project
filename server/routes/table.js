@@ -32,7 +32,7 @@ tableRoutes.route("/tables/download").post(async (req, res) => {
 });
 
 //receive a table, commit mapping
-tableRoutes.route("/tables/upload", upload.single('file')).post(async (req, res) => {
+tableRoutes.route("/tables/upload").post(upload.single('file'), async (req, res) => {
     let table = new ExcelTable();
     console.log("req", req.body, req.file);
     let mappings = req.body.pairs;

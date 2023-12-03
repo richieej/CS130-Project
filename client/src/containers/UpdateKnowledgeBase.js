@@ -193,9 +193,12 @@ const UpdateKnowledgeBase = () => {
         
         const formData = new FormData();
         const fileInput = document.getElementById('file-input');
-        console.log(fileInput.files[0]);
+        console.log(typeof fileInput.files[0]);
+        const blob = new Blob([fileInput])
+        console.log(typeof blob)
+        console.log(blob instanceof Blob)
 
-        formData.append("file", fileInput.files[0]);
+        formData.append("file", blob);
         formData.append("pairs", jsonPairs);
         console.log(...formData);
 
