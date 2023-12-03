@@ -13,8 +13,16 @@ class ExcelTable {
         await this.workbook.xlsx.write(stream);
     }
 
+    async writeBuffer() {
+        return await this.workbook.xlsx.writeBuffer()
+    }
+
     async read(stream) {
         await this.workbook.xlsx.read(stream);
+    }
+
+    async readBuffer(buffer) {
+        return await this.workbook.xlsx.load(buffer);
     }
 
     add_data(name, data_obj) {

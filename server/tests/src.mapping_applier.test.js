@@ -5,7 +5,6 @@ const { ExcelTable } = require('../src/excel.js');
 
 const stream = require('stream');
 const ExcelJS = require('exceljs');
-const fs = require('fs');
 
 const applier = new MappingApplier();
 const fuseki = new FusekiProxy("Main");
@@ -13,6 +12,16 @@ const map_db = new MappingDBProxy();
 
 beforeAll(async () => {
     await map_db.connect();
+    expect(map_db.isConnected).toBe(true);
+
+    console.log(await fuseki._is_dataset_defined());
+
+    const has_dataset = await fuseki.create_dataset();
+    expect(has_dataset.error).toBeFalsy();
+    expect(has_dataset.results).toBe(true);
+
+    const connection = await fuseki.test_connection();
+    expect(connection).toBe(true);
 });
 
 afterAll(async () => {
@@ -128,7 +137,19 @@ describe('Using Students and Schools dataset', () => {
         expect(school_mapping.uuid).toEqual(school_create_result.uuid);
     });
 
-    // TODO: do we need a delete?
+    afterAll(async () => {
+        const simple_mapping_delete = await map_db.delete_mapping(simple_mapping.uuid);
+        expect(simple_mapping_delete.err).toBeFalsy();
+
+        const confirm_simple_mapping_delete = await map_db.get_mapping_by_uuid(simple_mapping.uuid);
+        expect(confirm_simple_mapping_delete).toBeUndefined();
+
+        const school_mapping_delete = await map_db.delete_mapping(school_mapping.uuid);
+        expect(school_mapping_delete.err).toBeFalsy();
+
+        const confirm_school_mapping_delete = await map_db.get_mapping_by_uuid(school_mapping.uuid);
+        expect(confirm_school_mapping_delete).toBeUndefined();
+    });
 
     test('download excel from simple subject predicate object mapping', async () => {
         const table = await applier.table_from_mapping([simple_mapping]);

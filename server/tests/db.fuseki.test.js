@@ -2,11 +2,12 @@ const { FusekiProxy } = require('../db/fuseki.js');
 
 const fuseki = new FusekiProxy('Test', 'localhost', 3030);
 
-test('Jest install', () => {
-    expect(true).toBeTruthy();
-});
 
-test('Fuseki database connection', async () => {
+beforeAll(async () => {
+    const result = await fuseki.create_dataset();
+    expect(result.error).toBeFalsy();
+    expect(result.results).toBe(true);
+
     const connection = await fuseki.test_connection();
     expect(connection).toBe(true);
 });

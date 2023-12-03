@@ -56,6 +56,12 @@ describe('Mapping read and write', () => {
         expect(mapping.uuid).toEqual(create_result.uuid);
         expect(mapping.read_query).toEqual(read_query);
         expect(mapping.write_query).toEqual(write_query);
+
+        const delete_result = await mapDB.delete_mapping(mapping.uuid);
+        expect(delete_result.err).toBeFalsy();
+
+        const confirm_delete = await mapDB.get_mapping_by_uuid(mapping.uuid);
+        expect(confirm_delete).toBeUndefined();
     });
 });
 
