@@ -20,11 +20,10 @@ jobs:
           pkg-manager: npm
       - setup_remote_docker
       - run:
-        name: Check Fuseki Connectivity
-        command: |
-          apt-get update && apt-get install -y netcat
-          nc -zv 127.0.0.1 3030
-
+          name: Run tests
+          command: |
+            apt-get update && apt-get install -y netcat
+            nc -zv 127.0.0.1 3030
 
 # Orchestrate our job run sequence
 workflows:
