@@ -13,8 +13,7 @@ jobs:
       - run: echo "this is the build job"
   test:
     docker:
-      - image: cimg/node:16.10
-        network: host
+      - image: stain/jena-fuseki
     steps:
       - checkout
       - node/install-packages:
