@@ -24,7 +24,7 @@ jobs:
           command: |
             cd server
             echo "hello world"
-            docker run -p 3030:3030 stain/jena-fuseki
+            docker run -pidt 3030:3030 stain/jena-fuseki
             echo "hello world2"
             npm install
             npm test --forceExit
