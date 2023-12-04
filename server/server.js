@@ -12,13 +12,32 @@ app.use(require("./routes/table"));
 const dbo = require("./db/conn");
 const path = require("path");
 
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
+const key = fs.readFileSync(__dirname + '/../certs/selfsigned.key');
+const cert = fs.readFileSync(__dirname + '/../certs/selfsigned.crt');
+
+options = {
+  key: key,
+  cert: cert
+}
+
+//const frontend = express();
+//frontend.use(cors());
+//frontend.use(express.json());
 app.use(express.static(path.join(__dirname, "../client", "build")));
 // app.use(express.static(path.join(__dirname, "../client", "public")));
 
-app.listen(port, () => {
+//const server = http.createServer(app);
+const server = https.createServer(options, app);
+
+server.listen(port, () => {
   // perform a database connection when server starts
   dbo.connectToServer(function (err) {
     if (err) console.error(err);
    });
   console.log(`Server is running on port: ${port}`);
 });
+
+//server.listen(443);
