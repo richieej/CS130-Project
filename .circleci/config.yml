@@ -33,7 +33,7 @@ jobs:
             # Install dependencies
             npm install
             # Update your test command to use the Docker network gateway IP
-            npm test --forceExit --fuseki-url=http://$DOCKER_GATEWAY_IP:3030/#/
+            npm test --forceExit --fuseki-url=http://$DOCKER_GATEWAY_IP:3030/
 
 
 # Orchestrate our job run sequence
