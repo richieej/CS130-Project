@@ -18,23 +18,35 @@ const map_db = new MappingDBProxy();
 map_db.connect();
 
 //receive a mapping, return a excel table (in the form of a stream)
-tableRoutes.route("/tables/download").post(async (req, res) => {
-    let mappings = req.body.mappings;
-    let table = await applier.table_from_mapping(mappings);
-    const file = await table.writeBuffer();
 
-    res.send(file);
+tableRoutes.route("/tables/download").get(async (req, res) => {
+    try {
+        let mappings = req.body.mappings;
+        let table = await applier.table_from_mapping(mappings);
+        const file = await table.writeBuffer();
+
+        fs.writeFileSync("test.xlsx", file);
+
+        res.send(file);
+    } catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+    }
 });
 
 //receive a table, commit mapping
 tableRoutes.route("/tables/upload").post(upload.single('file'), async (req, res) => {
-    let table = new ExcelTable();
-    console.log("req", req.body, req.file);
-    let mappings = JSON.parse(req.body.pairs);
-    await table.readFile(req.file.path);
-    
-    const write_result = await applier.update_from_table(table, mappings);
-    res.json(write_result);
+    try {
+        let table = new ExcelTable();
+        let mappings = req.body.pairs;
+        await table.readFile(req.file.path);
+        
+        const write_result = await applier.update_from_table(table, mappings);
+        res.json(write_result);
+    } catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+    }
 });
 
 module.exports = tableRoutes;
