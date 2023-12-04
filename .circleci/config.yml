@@ -30,7 +30,7 @@ jobs:
             wget https://dlcdn.apache.org/jena/binaries/apache-jena-fuseki-4.10.0.tar.gz
             tar -xzvf apache-jena-fuseki-4.10.0.tar.gz
             cd apache-jena-fuseki-4.10.0
-            ./fuseki-server
+            ./fuseki-server &
             npm install
             npm test --forceExit
 
