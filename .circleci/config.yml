@@ -32,6 +32,7 @@ jobs:
             cd apache-jena-fuseki-4.10.0
             ./fuseki-server &
             npm install
+            npm install supertest
             npm test --forceExit
 
 # Orchestrate our job run sequence
