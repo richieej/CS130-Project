@@ -24,10 +24,17 @@ jobs:
           command: |
             cd server
             echo "hello world"
+            # Start Fuseki container
             docker run -d -p 127.0.0.1:3030:3030 stain/jena-fuseki
             echo "hello world2"
+            # Fetch Docker network gateway IP
+            DOCKER_GATEWAY_IP=$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')
+            echo "Docker Gateway IP: $DOCKER_GATEWAY_IP"
+            # Install dependencies
             npm install
-            npm test --forceExit
+            # Update your test command to use the Docker network gateway IP
+            npm test --forceExit --fuseki-url=http://$DOCKER_GATEWAY_IP:3030/dataset
+
 
 # Orchestrate our job run sequence
 workflows:
