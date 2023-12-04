@@ -44,6 +44,7 @@ const MappingsContainer = styled.div`
     border: 5px solid white;
     box-sizing: border-box;
     padding: 15px;
+    // height: 100vh;
 `
 
 const UploadButton = styled.button`
@@ -87,6 +88,7 @@ const MatchRow = styled.div`
 
 const Dropdown = styled.select`
     width: 100%;
+    white-space: pre-wrap;
 `
 
 const initialModal = {
@@ -288,6 +290,7 @@ const UpdateKnowledgeBase = () => {
                                                 <option
                                                     key={item.uuid}
                                                     value={item.uuid}
+                                                    title={[item.name, item.write_query]}
                                                 >
                                                     {item.write_query}
                                                 </option>
