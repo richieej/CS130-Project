@@ -229,7 +229,7 @@ const UpdateKnowledgeBase = () => {
 
     const { state } = useContext(Ctx);
 
-    if (state.user === null || !state.user.admin) {
+    if (state.user === null) {
         return <Navigate to="/" replace />;
     }
 
