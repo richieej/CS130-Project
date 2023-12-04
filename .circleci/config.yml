@@ -23,9 +23,10 @@ jobs:
           name: Run tests
           command: |
             cd server
+            echo "hello world"
             docker run -p 3030:3030 stain/jena-fuseki
             npm install
-            npm test
+            npm test --forceExit
 
 # Orchestrate our job run sequence
 workflows:
