@@ -11,7 +11,7 @@ const Label = styled.label`
     font-size: 20px;
 `
 
-const Input = styled.input`
+const Input = styled.textarea`
   margin-top: 10px;
   border-radius: 5px;
   border: none;

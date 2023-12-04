@@ -40,7 +40,6 @@ const MappingsContainer = styled.div`
     border: 5px solid white;
     box-sizing: border-box;
     padding: 15px;
-    height: 80vh;
 `
 
 const UpdateButton = styled.button `

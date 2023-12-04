@@ -1,6 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { Navigate } from "react-router-dom";
+import Axios from 'axios';
+
 import styled from 'styled-components'
 import PageHeader from '../components/PageHeader'
+import MappingList from '../components/MappingList';
+import PopUpModal from '../components/PopUpModal';
+
+import MappingService from '../services/MappingService';
+import { Ctx } from '../components/StateProvider';
+
+import { BASE_URL } from '../config';
+
+const axios = Axios.create({
+	baseURL: BASE_URL,
+});
+
 
 const Form = styled.div`
     padding: 15px 50px;
@@ -15,6 +30,13 @@ const ListContainer = styled.div`
     font-family: 'Courier Prime', monospace;
     font-size: 20px;
     padding: 1em 0;
+    width: 70%;
+    height: 90vh;
+    overflow-y: auto;
+
+    div {
+        padding-bottom: 2em;
+    }
 `
 
 const SubmitButton = styled.button`
@@ -29,41 +51,45 @@ const SubmitButton = styled.button`
     cursor: pointer;
 `
 
+const initialModal = {
+    show: false,
+    success: true,
+    successText: '',
+    errorText: '',
+}
+
 const DownloadExcelFile = () => {
+    const [modal, setModal] = useState(initialModal);
     const [mappings, setMappings] = useState([]);
     const [checked, setChecked] = useState([]);
 
-    const tempData = [
-        {mapping: "SELECT * FROM table1"},
-        {mapping: "SELECT * FROM table2"},
-        {mapping: "SELECT * FROM table3"},
-        {mapping: "SELECT * FROM table4"},
-        {mapping: "SELECT * FROM table5"},
-        {mapping: "SELECT * FROM table6"},
-        {mapping: "SELECT * FROM table7 SELECT * FROM table7"},
-        {mapping: "SELECT * FROM table8"},
-        {mapping: "SELECT * FROM table9 SELECT * FROM table9"},
-        {mapping: "SELECT * FROM table10"},
-        {mapping: "SELECT * FROM table11"},
-        {mapping: "SELECT * FROM table12"},
-    ]
-
     useEffect(() => {
-        // const fetchData = async () => {
-        //     try {
-        //     const response = await fetch('http://localhost:8080/mappings');
-        //     const result = await response.json();
-        //     setData(result.items); 
-        //     } catch (error) {
-        //     console.error('Error fetching data:', error);
-        //     }
-        // };
-        // fetchData();
-        setMappings(tempData)
-    }, []); // empty dependency array ensures that this effect runs once when the component mounts
+        fetchMappings();
+    }, [])
 
+    const { state } = useContext(Ctx);
+
+    const fetchMappings = async () => {
+        try {
+          const res = await MappingService.getAllMappings();
+          setMappings(res)
+        } catch(e) {
+          console.log(e);
+          setModal((prev) => ({
+            ...prev,
+            show: true,
+            success: false,
+            errorText: 'An error occurred trying to fetch the mappings',
+          }))
+        }
+    }
+
+    const closeModal = () => setModal(initialModal)
+
+      
     // Add/Remove checked item from list
     const handleCheck = (event) => {
+        console.log(event.target.value)
         var updatedList = [...checked];
         if (event.target.checked) {
             updatedList = [...checked, event.target.value];
@@ -75,58 +101,70 @@ const DownloadExcelFile = () => {
 
     // TODO: send mappings to endpoint and get Excel file from endpoint
     const handleSubmit = async (e) => {
-        e.preventDefault();
-    
+        console.log(checked)
+
         // Send selected mappings list to the server
-        try {
-            const response = await fetch('/api/submit-form', {
-                method: 'POST',
-                headers: {
-                'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(checked),
-            });
-    
-            // Assuming the server responds with a file to download
-            const fileBlob = await response.blob();
+        await axios.post('/tables/download', {mappings: checked}, {responseType: 'blob'})
+            .then(response => {
+                console.log(response.data)
+                const url = window.URL.createObjectURL(response.data); 
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "data.xlsx"  
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
 
-            // Create a blob URL for the file
-            const fileUrl = URL.createObjectURL(fileBlob);
+                setModal((prev) => ({
+                    ...prev,
+                    show: true,
+                    success: true,
+                    successText: 'Successfully created Excel file to download',
+                }))
+        })
+        .catch (error => {
+            console.log(error);
+            setModal((prev) => ({
+                ...prev,
+                show: true,
+                success: false,
+                errorText: 'An error occurred trying to fetch the data',
+            }))
+        });
+    };
 
-            // Create an anchor element to trigger download
-            const downloadLink = document.createElement('a');
-            downloadLink.href = fileUrl;
-            downloadLink.download = 'data.xls'; // Set the file name
-
-            // Append the anchor to the body and trigger the download
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-
-            // Remove the anchor element from the body
-            document.body.removeChild(downloadLink);
-            URL.revokeObjectURL(fileUrl);
-        } catch (error) {
-            console.error('Error submitting selected mappings:', error);
-        }
-      };
+    if (state.user === null) {
+        return <Navigate to="/" replace />;
+    }
     
     return (
         <div>
             <PageHeader title={"Download Excel File from Knowledge Base"} />
+            <PopUpModal
+                isOpen={modal.show}
+                closeModal={closeModal}
+                success={modal.success}
+                successText={modal.successText}
+                errorText={modal.errorText}
+            />
             <Form>
                 <form onSubmit={handleSubmit}>
                     <label htmlFor="mapping-selection"> Select Mappings </label>
                     <ListContainer>
-                        {mappings.map((m, index) => (
-                            <div key={index}>
-                                <input value={m.mapping} type="checkbox" onChange={handleCheck} />
-                                <span> {m.mapping} </span>
+                        {mappings.map((item) => (
+                            <div>
+                                <input 
+                                    key={item.uuid} 
+                                    value={item.uuid} 
+                                    type="checkbox" 
+                                    onChange={handleCheck} />
+                                <span> {item.read_query} </span>
                             </div>
                         ))}
                     </ListContainer>
                 </form>
 
-                <SubmitButton type="submit">
+                <SubmitButton type="submit" onClick={handleSubmit}>
                     Submit
                 </SubmitButton>
             </Form>
@@ -134,4 +172,4 @@ const DownloadExcelFile = () => {
     )
 }
 
-export default DownloadExcelFile
+export default DownloadExcelFile;

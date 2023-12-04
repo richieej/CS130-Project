@@ -10,6 +10,11 @@ app.use(require("./routes/mapping"));
 app.use(require("./routes/table"));
 // get driver connection
 const dbo = require("./db/conn");
+const path = require("path");
+
+app.use(express.static(path.join(__dirname, "../client", "build")));
+// app.use(express.static(path.join(__dirname, "../client", "public")));
+
 app.listen(port, () => {
   // perform a database connection when server starts
   dbo.connectToServer(function (err) {
@@ -17,3 +22,5 @@ app.listen(port, () => {
    });
   console.log(`Server is running on port: ${port}`);
 });
+
+module.exports = app
