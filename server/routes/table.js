@@ -23,12 +23,7 @@ tableRoutes.route("/tables/download").post(async (req, res) => {
     let table = await applier.table_from_mapping(mappings);
     const file = await table.writeBuffer();
 
-    fs.writeFileSync("test.xlsx", file);
-
     res.send(file);
-
-    console.log("mappings:", mappings);
-    console.log(file);
 });
 
 //receive a table, commit mapping

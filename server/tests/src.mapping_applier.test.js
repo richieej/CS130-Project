@@ -85,11 +85,9 @@ describe('Using Students and Schools dataset', () => {
             };
 
             INSERT {
-                ?subject ?predicate ?object
+                <<NEW.subject>> <<NEW.predicate>> <<NEW.object>>
             } 
-            WHERE {
-                FILTER(?subject=<<NEW.subject>> && ?predicate=<<NEW.predicate>> && ?object=<<NEW.object>>).
-            };
+            WHERE {};
         `, "PLACEHOLDER");
         expect(simple_create_result.err).toBeUndefined();
         expect(simple_create_result.uuid).toBeDefined();
