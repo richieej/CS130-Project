@@ -42,7 +42,7 @@ mappingRoutes.route("/mappings/add").post(async function (req, response) {
 
 });
 
-// This section will help you edit existing admins.
+// This section will help you edit existing mappings.
 mappingRoutes.route("/mappings/edit").post(async function (req, response) {
   if (!mapDB.isConnected) {
     await mapDB.connect();

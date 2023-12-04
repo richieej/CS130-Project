@@ -7,7 +7,7 @@ orbs:
 jobs:
   build:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:14.18.1
     steps:
       - checkout
       - run: echo "this is the build job"
@@ -18,12 +18,22 @@ jobs:
       - checkout
       - node/install-packages:
           pkg-manager: npm
+      - setup_remote_docker
       - run:
           name: Run tests
           command: |
+            sudo apt-get update && sudo apt-get install openjdk-17-jdk
+            sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+            sudo update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
+            java -version
             cd server
+            wget https://dlcdn.apache.org/jena/binaries/apache-jena-fuseki-4.10.0.tar.gz
+            tar -xzvf apache-jena-fuseki-4.10.0.tar.gz
+            cd apache-jena-fuseki-4.10.0
+            ./fuseki-server &
             npm install
-            npm test
+            npm install supertest
+            npm test --forceExit
 
 # Orchestrate our job run sequence
 workflows:

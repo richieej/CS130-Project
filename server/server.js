@@ -41,3 +41,4 @@ server.listen(port, () => {
 });
 
 //server.listen(443);
+module.exports = server
