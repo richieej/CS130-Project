@@ -11,6 +11,7 @@ jobs:
     steps:
       - checkout
       - run: echo "this is the build job"
+      - setup_remote_docker
   test:
     docker:
       - image: cimg/node:16.10
@@ -22,7 +23,6 @@ jobs:
           name: Run tests
           command: |
             cd server
-            systemctl start docker
             docker run -p 3030:3030 stain/jena-fuseki
             npm install
             npm test
