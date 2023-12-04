@@ -23,10 +23,9 @@ jobs:
           name: Run tests
           command: |
             cd server
-            wget https://dlcdn.apache.org/jena/binaries/apache-jena-fuseki-4.10.0.tar.gz
-            tar -xzvf apache-jena-fuseki-4.10.0.tar.gz
-            cd apache-jena-fuseki-4.10.0
-            ./fuseki-server
+            echo "hello world"
+            docker run -d -p 127.0.0.1:3030:3030 stain/jena-fuseki
+            echo "hello world2"
             npm install
             npm test --forceExit
 
