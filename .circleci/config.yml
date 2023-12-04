@@ -20,7 +20,9 @@ jobs:
           pkg-manager: npm
       - run:
           name: Run tests
-          command: npm test
+          command: |
+            cd server
+            npm test
 
 # Orchestrate our job run sequence
 workflows:
