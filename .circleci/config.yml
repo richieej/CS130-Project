@@ -11,7 +11,6 @@ jobs:
     steps:
       - checkout
       - run: echo "this is the build job"
-      - setup_remote_docker
   test:
     docker:
       - image: cimg/node:16.10
@@ -19,6 +18,7 @@ jobs:
       - checkout
       - node/install-packages:
           pkg-manager: npm
+      - setup_remote_docker
       - run:
           name: Run tests
           command: |
