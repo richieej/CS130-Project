@@ -34,6 +34,10 @@ jobs:
             npm install
             npm install supertest
             npm test --forceExit
+            cd ../client
+            npm install
+            npm test --forceExit
+
 
 # Orchestrate our job run sequence
 workflows:
