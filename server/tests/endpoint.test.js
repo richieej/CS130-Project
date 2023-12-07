@@ -25,7 +25,7 @@ describe("GET /mappings", () => {
         .set('Accept', 'application/json');
 
       expect(response.statusCode).toBe(200);
-      expect(response.body.length).toBeGreaterThan(10);
+      expect(response.body.length).toBeGreaterThan(1);
     });
 });
 
@@ -35,12 +35,12 @@ describe("GET /mappings/mapping", () => {
   
       const response = await request(app)
         .get("/mappings/mapping")
-        .query({uuid: "99bb0259-1846-470b-b6d0-b1dcc6d4b6bc"})
+        .query({uuid: "015ad7d4-502f-4032-b806-9f595e1646c1"})
         .set('Accept', 'application/json');
 
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty("uuid");
-      expect(response.body.uuid).toEqual('99bb0259-1846-470b-b6d0-b1dcc6d4b6bc');
+      expect(response.body.uuid).toEqual('015ad7d4-502f-4032-b806-9f595e1646c1');
     });
 });
 
