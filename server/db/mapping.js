@@ -5,6 +5,17 @@ const logger = require('./logger.js');
 const { ATLAS_URI } = require('./config.js');
 
 class Mapping {
+    
+    /**
+     * Creates an instance of Mapping.
+     *
+     * @constructor
+     * @param {string} uuid Mapping ID
+     * @param {string} name Mapping Name
+     * @param {string} owner_uuid Owner ID
+     * @param {string} read_query Read Query
+     * @param {string} write_query Write Query
+     */
     constructor(uuid, name, owner_uuid, read_query, write_query) {
         this.uuid = uuid;
         this.name = name;
@@ -19,6 +30,14 @@ class Mapping {
     // get read_query() { return this.read_query; }
     // get write_query() { return this.write_query; }
 
+    
+    /**
+     * Obtain new query from old query
+     *
+     * @param {string} new_data
+     * @param {string} old_data
+     * @returns {string}
+     */
     get_write_with_data(new_data, old_data) {
         const m = Math.max(new_data.data.length, old_data.data.length);
         let final_query = "";
@@ -39,6 +58,13 @@ class Mapping {
 }
 
 class MappingDBProxy {
+    
+    /**
+     * Creates an instance of MappingDBProxy.
+     *
+     * @constructor
+     * @param {string} [hostname=ATLAS_URI]
+     */
     constructor(hostname=ATLAS_URI) {
         this.client = new MongoClient(ATLAS_URI, {
             useNewUrlParser: true,
@@ -48,6 +74,12 @@ class MappingDBProxy {
         this.connected = false;
     }
 
+    
+    /**
+     * Connect to Mongo
+     *
+     * @async
+     */
     async connect() {
         this.db = await this.client.connect();
         this.mapping_db = this.db.db("mappings");
@@ -55,6 +87,12 @@ class MappingDBProxy {
         this.connected = true;
     }
 
+    
+    /**
+     * Disconnect from Mongo
+     *
+     * @async
+     */
     async disconnect() {
         await this.db.close();
         this.mapping_db = undefined;
@@ -62,13 +100,21 @@ class MappingDBProxy {
         this.connected = false;
     }
 
+    
+    /**
+     * Test if connected to Mongo
+     *
+     * @readonly
+     * @type {boolean}
+     */
     get isConnected() {
         return this.connected;
     }
 
     /**
      * Gets all the stored mappings in the database
-     * @returns list of all mappings in the database
+     * 
+     * @returns {Array} list of all mappings in the database
      */
     async get_all_mappings() {
         if (!this.connected) {
@@ -93,6 +139,7 @@ class MappingDBProxy {
 
     /**
      * Finds a mapping in the database by the given uuid
+     * 
      * @param {String} uuid 
      * @returns {Promise<Mapping | undefined>}the resulting mapping
      */
@@ -117,11 +164,12 @@ class MappingDBProxy {
 
     /**
      * Creates a new mapping in the database and returns the new mapping's UUID
+     * 
      * @param {String} name 
      * @param {String} read_query 
      * @param {String} write_query 
      * @param {String} owner_uuid 
-     * @returns an object result; on success result.uuid contains the new mapping's UUID, on failure, result.err contains the error value  
+     * @returns {Promise<{uuid: string, err: any}>} an object result; on success result.uuid contains the new mapping's UUID, on failure, result.err contains the error value  
      */
     async create_new_mapping(name, read_query, write_query, owner_uuid) {
         if (!this.connected) {
@@ -152,10 +200,26 @@ class MappingDBProxy {
         }
     }
 
+    
+    /**
+     * Converts a document into a mapping
+     *
+     * @param {*} doc
+     * @returns {Mapping}
+     */
     _mapping_doc_to_mapping(doc) {
         return new Mapping(doc._id, doc.name, doc.owner_uuid, doc.read_query, doc.write_query);
     }
 
+    
+    /**
+     * Delete a mapping from Mongo
+     *
+     * @async
+     * @param {string} uuid
+     * @returns {Promise<{ data: any }> | Promise<{ err: any }>
+}
+     */
     async delete_mapping(uuid) {
         if (!this.connected) {
             throw new Error("Not connected to the database");

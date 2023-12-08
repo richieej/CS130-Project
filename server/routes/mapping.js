@@ -59,6 +59,7 @@ mappingRoutes.route("/mappings/edit").post(async function (req, response) {
 
 });
 
+// This section will help you delete a mapping
 mappingRoutes.route("/mappings").delete(async function (req, response) {
   if (!mapDB.isConnected) {
     await mapDB.connect();

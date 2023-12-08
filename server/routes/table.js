@@ -17,7 +17,7 @@ const map_db = new MappingDBProxy();
 
 map_db.connect();
 
-//receive a mapping, return a excel table (in the form of a stream)
+// this section will help you download a mapping
 
 tableRoutes.route("/tables/download").post(async (req, res) => {
     try {
@@ -34,14 +34,12 @@ tableRoutes.route("/tables/download").post(async (req, res) => {
     }
 });
 
-//receive a table, commit mapping
+// this section will help you upload a mapping
 tableRoutes.route("/tables/upload").post(upload.single('file'), async (req, res) => {
     try {
         let table = new ExcelTable();
         let mappings = JSON.parse(req.body.pairs);
         await table.readFile(req.file.path);
-
-	//console.log(mappings);
         
         const write_result = await applier.update_from_table(table, mappings);
         res.json(write_result);

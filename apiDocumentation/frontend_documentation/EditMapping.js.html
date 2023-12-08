@@ -1,4 +1,32 @@
-import React, { useContext, useEffect, useState } from 'react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: EditMapping.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: EditMapping.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useContext, useEffect, useState } from 'react';
 import { Navigate } from "react-router-dom";
 import styled from 'styled-components';
 
@@ -97,9 +125,9 @@ const EditMapping = () => {
     const [editMapping, setEditMapping] = useState(initialEditMapping)
     const { uuid, query_name, read_query, write_query } = editMapping;
     const disabled = query_name.length === 0 || read_query.length === 0 || write_query.length === 0
-      || (selectedMapping && selectedMapping.query_name === query_name
-      && selectedMapping.read_query === read_query
-      && selectedMapping.write_query === write_query);
+      || (selectedMapping &amp;&amp; selectedMapping.query_name === query_name
+      &amp;&amp; selectedMapping.read_query === read_query
+      &amp;&amp; selectedMapping.write_query === write_query);
 
     const fetchMappings = async () => {
       try {
@@ -191,65 +219,88 @@ const EditMapping = () => {
     }, [])
 
     if (state.user === null || !state.user.admin) {
-      return <Navigate to="/" replace />;
+      return &lt;Navigate to="/" replace />;
     }
 
     return (
-      <div style={{ height: "fit-content"}}>
-          <PopUpModal
+      &lt;div style={{ height: "fit-content"}}>
+          &lt;PopUpModal
             isOpen={modal.show}
             closeModal={closeModal}
             success={modal.success}
             successText={modal.successText}
             errorText={modal.errorText}
           />
-          <PageHeader title={"Edit Mappings"} />
-          <Grid>
-              <MappingsContainer>
-                  <MappingList clickable data={mappings} selected={selectedMapping} setSelected={setSelectedMapping}/>
-              </MappingsContainer>
-              {selectedMapping !== null && <RightHalf>
-                  <Box>
-                      <p> Edit Mapping Definition </p>
-                      <TextInput
+          &lt;PageHeader title={"Edit Mappings"} />
+          &lt;Grid>
+              &lt;MappingsContainer>
+                  &lt;MappingList clickable data={mappings} selected={selectedMapping} setSelected={setSelectedMapping}/>
+              &lt;/MappingsContainer>
+              {selectedMapping !== null &amp;&amp; &lt;RightHalf>
+                  &lt;Box>
+                      &lt;p> Edit Mapping Definition &lt;/p>
+                      &lt;TextInput
                         value={query_name}
                         placeholder="Enter query name"
                         label="Query Name"
                         name="query_name"
                         onChange={handleChange}
                       />
-                      <TextInput
+                      &lt;TextInput
                         value={read_query}
                         placeholder="Enter read query"
                         label="Read Query"
                         name="read_query"
                         onChange={handleChange}
                       />
-                      <TextInput
+                      &lt;TextInput
                         value={write_query}
                         placeholder="Enter write query"
                         label="Write Query"
                         name="write_query"
                         onChange={handleChange}
                       />
-                      <DeleteButton
+                      &lt;DeleteButton
                         onClick={handleDelete}
                       >
                         Delete Mapping
-                      </DeleteButton>
-                      <UpdateButton
+                      &lt;/DeleteButton>
+                      &lt;UpdateButton
                         onClick={submit}
                         disabled={disabled}
                         style={{backgroundColor: disabled ? 'gray': '#39B045'}}
                       >
                         Edit Mapping
-                      </UpdateButton>
-                  </Box>
-              </RightHalf>}
-          </Grid>
+                      &lt;/UpdateButton>
+                  &lt;/Box>
+              &lt;/RightHalf>}
+          &lt;/Grid>
 
-      </div>
+      &lt;/div>
     );
 }
 
 export default EditMapping;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#EditMapping">EditMapping</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Thu Dec 07 2023 17:27:32 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
