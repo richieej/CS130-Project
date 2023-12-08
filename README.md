@@ -9,7 +9,7 @@
 3. Start the fuseki server by navigating to the top level folder of the download and running `./fuseki-server`.  
 This starts the server on port 3030. 
 
-4. Open terminal and navigate to the top level folder of our application, then to the `server` folder. Make sure you have Node.js and npm. Then, install the version of npm that we used by running:  
+4. Open a new terminal and navigate to the top level folder of our application, then to the `server` folder. Make sure you have Node.js and npm. Then, install the version of npm that we used by running:  
 ```npm install```
 
 5. Then, run the following command to start the server:  
