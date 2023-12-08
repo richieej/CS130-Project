@@ -61,6 +61,5 @@
     "transform": {
       "^.+\\.jsx?$": "babel-jest"
     }
-  },
-  "type": "module"
+  }
 }
