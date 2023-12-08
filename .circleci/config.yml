@@ -26,7 +26,10 @@ jobs:
             sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
             sudo update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
             java -version
-            cd server
+            cd client
+            npm install
+            npm test
+            cd ../server
             wget https://dlcdn.apache.org/jena/binaries/apache-jena-fuseki-4.10.0.tar.gz
             tar -xzvf apache-jena-fuseki-4.10.0.tar.gz
             cd apache-jena-fuseki-4.10.0
@@ -34,8 +37,7 @@ jobs:
             npm install
             npm install supertest
             npm test
-            ls
-            
+          
 
 
 # Orchestrate our job run sequence
