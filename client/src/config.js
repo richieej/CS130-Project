@@ -1,3 +1,3 @@
-const BASE_URL = `https://excql.link/`;
+const BASE_URL = `http://localhost:8080`;
 
 export { BASE_URL };
