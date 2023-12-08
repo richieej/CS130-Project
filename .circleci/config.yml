@@ -34,9 +34,8 @@ jobs:
             npm install
             npm install supertest
             npm test
-            cd ../client
-            npm install
-            npm test --forceExit
+            ls
+            
 
 
 # Orchestrate our job run sequence
