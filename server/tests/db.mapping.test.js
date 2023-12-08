@@ -124,7 +124,7 @@ test('fill mapping with write data', () => {
 
     expect(query.includes('?student eql:name "Joe Biden".')).toBe(true);
     expect(query.includes('?school1 eql:name "University of Delaware".')).toBe(true);
-    expect(query.includes('?school2 eql:name "".')).toBe(true);
+    expect(query.includes('?school2 eql:name "".')).toBe(false);
 });
 
 // test('uuid exists', async () => {
