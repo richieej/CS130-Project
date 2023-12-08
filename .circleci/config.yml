@@ -33,7 +33,7 @@ jobs:
             ./fuseki-server &
             npm install
             npm install supertest
-            npm test --forceExit
+            npm test
             cd ../client
             npm install
             npm test --forceExit
