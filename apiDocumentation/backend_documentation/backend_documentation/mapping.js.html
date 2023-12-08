@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: mapping.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: mapping.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const { MongoClient } = require("mongodb");
+const { UUID } = require('bson');
+
+const logger = require('./logger.js');
+const { ATLAS_URI } = require('./config.js');
+
+class Mapping {
+    
+    /**
+     * Creates an instance of Mapping.
+     *
+     * @constructor
+     * @param {string} uuid Mapping ID
+     * @param {string} name Mapping Name
+     * @param {string} owner_uuid Owner ID
+     * @param {string} read_query Read Query
+     * @param {string} write_query Write Query
+     */
+    constructor(uuid, name, owner_uuid, read_query, write_query) {
+        this.uuid = uuid;
+        this.name = name;
+        this.owner_uuid = owner_uuid;
+        this.read_query = read_query;
+        this.write_query = write_query;
+    }
+
+    // get uuid() { return this.uuid; }
+    // get name() { return this.name; }
+    // get owner_uuid() { return this.owner_uuid; }
+    // get read_query() { return this.read_query; }
+    // get write_query() { return this.write_query; }
+
+    
+    /**
+     * Obtain new query from old query
+     *
+     * @param {string} new_data
+     * @param {string} old_data
+     * @returns {string}
+     */
+    get_write_with_data(new_data, old_data) {
+        const m = Math.max(new_data.data.length, old_data.data.length);
+        let final_query = "";
+        for (let i = 0; i &lt; m; i++) {
+            let copy_query = this.write_query.slice();
+            for (let header of new_data.headers) {
+                const new_val = i &lt; new_data.data.length ? new_data.data[i][header] : undefined;
+                copy_query = copy_query.replace(`&lt;&lt;NEW.${header}>>`, `${ new_val !== undefined ? new_val : '&lt;>' }`);
+            }
+            for (let header of old_data.headers) {
+                const old_val = i &lt; old_data.data.length ? old_data.data[i][header] : undefined;
+                copy_query = copy_query.replace(`&lt;&lt;OLD.${header}>>`, `${ old_val !== undefined ? old_val : '&lt;>' }`);
+            }
+            final_query += copy_query + "\n";
+        }
+        return final_query;
+    }
+}
+
+class MappingDBProxy {
+    
+    /**
+     * Creates an instance of MappingDBProxy.
+     *
+     * @constructor
+     * @param {string} [hostname=ATLAS_URI]
+     */
+    constructor(hostname=ATLAS_URI) {
+        this.client = new MongoClient(ATLAS_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            pkFactory: { createPk: () => new UUID().toString() }
+        });
+        this.connected = false;
+    }
+
+    
+    /**
+     * Connect to Mongo
+     *
+     * @async
+     */
+    async connect() {
+        this.db = await this.client.connect();
+        this.mapping_db = this.db.db("mappings");
+        logger.info("Connected to mapping database");
+        this.connected = true;
+    }
+
+    
+    /**
+     * Disconnect from Mongo
+     *
+     * @async
+     */
+    async disconnect() {
+        await this.db.close();
+        this.mapping_db = undefined;
+        logger.info("Disconnected from mapping database");
+        this.connected = false;
+    }
+
+    
+    /**
+     * Test if connected to Mongo
+     *
+     * @readonly
+     * @type {boolean}
+     */
+    get isConnected() {
+        return this.connected;
+    }
+
+    /**
+     * Gets all the stored mappings in the database
+     * 
+     * @returns {Array} list of all mappings in the database
+     */
+    async get_all_mappings() {
+        if (!this.connected) {
+            throw new Error("Not connected to the database");
+        }
+
+        let mapping_col = this.mapping_db.collection("mapping");
+        let cursor = mapping_col.find({}).project({
+            _id: 1,
+            name: 1,
+            owner_uuid: 1,
+            read_query: 1,
+            write_query: 1
+        });
+        let mappings = [];
+        for await (const doc of cursor) {
+            let mapping = this._mapping_doc_to_mapping(doc);
+            mappings.push(mapping);
+        }
+        return mappings;
+    }
+
+    /**
+     * Finds a mapping in the database by the given uuid
+     * 
+     * @param {String} uuid 
+     * @returns {Promise&lt;Mapping | undefined>}the resulting mapping
+     */
+    async get_mapping_by_uuid(uuid) {
+        if (!this.connected) {
+            throw new Error("Not connected to the database");
+        }
+        let mapping_col = this.mapping_db.collection("mapping");
+        let data = await mapping_col.findOne({_id : uuid }, {projection: {
+            _id: 1,
+            name: 1,
+            owner_uuid: 1,
+            read_query: 1,
+            write_query: 1
+        }});
+        if (!data)
+            return undefined;
+        let mapping = this._mapping_doc_to_mapping(data);
+
+        return mapping;
+    }
+
+    /**
+     * Creates a new mapping in the database and returns the new mapping's UUID
+     * 
+     * @param {String} name 
+     * @param {String} read_query 
+     * @param {String} write_query 
+     * @param {String} owner_uuid 
+     * @returns {Promise&lt;{uuid: string, err: any}>} an object result; on success result.uuid contains the new mapping's UUID, on failure, result.err contains the error value  
+     */
+    async create_new_mapping(name, read_query, write_query, owner_uuid) {
+        if (!this.connected) {
+            throw new Error("Not connected to the database");
+        }
+
+        let mapping_col = this.mapping_db.collection("mapping");
+        let result = await mapping_col.insertOne({
+            name: name,
+            owner_uuid: owner_uuid,
+            read_query: read_query,
+            write_query: write_query
+        });
+
+        let result_mapping = undefined;
+        let result_err = undefined;
+
+        if (!result.acknowledged) {
+            result_err = new Error("write error");
+        }
+        else {
+            result_mapping = result.insertedId;
+        }
+        
+        return {
+            uuid: result_mapping,
+            err: result_err
+        }
+    }
+
+    
+    /**
+     * Converts a document into a mapping
+     *
+     * @param {*} doc
+     * @returns {Mapping}
+     */
+    _mapping_doc_to_mapping(doc) {
+        return new Mapping(doc._id, doc.name, doc.owner_uuid, doc.read_query, doc.write_query);
+    }
+
+    
+    /**
+     * Delete a mapping from Mongo
+     *
+     * @async
+     * @param {string} uuid
+     * @returns {Promise&lt;{ data: any }> | Promise&lt;{ err: any }>
+}
+     */
+    async delete_mapping(uuid) {
+        if (!this.connected) {
+            throw new Error("Not connected to the database");
+        }
+
+        let mapping_col = this.mapping_db.collection("mapping");
+        let result = await mapping_col.deleteOne({
+            _id: uuid
+        });
+
+        let deleted_mapping = undefined;
+        let result_err = undefined;
+
+        if (!result.acknowledged) {
+            result_err = new Error("write error");
+        }
+        else {
+            deleted_mapping = result.deletedCount;
+        }
+        
+        return {
+            err: result_err
+        }
+    }
+
+}
+
+module.exports = { MappingDBProxy, Mapping };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Mapping.html">Mapping</a></li><li><a href="MappingDBProxy.html">MappingDBProxy</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Thu Dec 07 2023 16:38:08 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
