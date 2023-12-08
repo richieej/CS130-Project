@@ -48,7 +48,9 @@ class MappingApplier {
         let results = [];
         for (const name of Object.keys(pairs)) {
             const uuid = pairs[name];
+	    //console.log(uuid);
             const mapping = await this.mapDB.get_mapping_by_uuid(uuid);
+            //console.log(mapping);
             if (!mapping)
                 continue;
             const { read_query } = mapping;
