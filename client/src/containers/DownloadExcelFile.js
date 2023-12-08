@@ -159,11 +159,12 @@ const DownloadExcelFile = () => {
                         {mappings.map((item) => (
                             <div>
                                 <input 
+                                    id={item.uuid}
                                     key={item.uuid} 
                                     value={item.uuid} 
                                     type="checkbox" 
                                     onChange={handleCheck} />
-                                <span> {item.read_query} </span>
+                                <label for={item.uuid}> {item.read_query} </label>
                             </div>
                         ))}
                     </ListContainer>
