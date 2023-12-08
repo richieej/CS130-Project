@@ -6,12 +6,28 @@ const http = require('http');
 const logger = require('./logger.js');
 
 class FusekiProxy {
+    
+    /**
+     * Creates an instance of FusekiProxy.
+     *
+     * @constructor
+     * @param {string} dataset_name Name of dataset
+     * @param {string} [hostname="localhost"] Domain of hosting site
+     * @param {number} [port=3030]  Port number
+     */
     constructor(dataset_name, hostname = "localhost", port = 3030) {
         this.dataset_name = dataset_name;
         this.hostname = hostname;
         this.port = port;
     }
 
+    
+    /**
+     * Tests if connected to Fuseki database
+     *
+     * @async
+     * @returns {boolean}
+     */
     async test_connection() {
         const data = await this.read_data(`
             SELECT ?subject ?predicate ?object
@@ -25,6 +41,13 @@ class FusekiProxy {
         return false;
     }
 
+    
+    /**
+     * Create a dataset in the Fuseki database
+     *
+     * @async
+     * @returns {Promise<{error: any, results: boolean}>}
+     */
     async create_dataset() {
         if (await this._is_dataset_defined())
             return {error: undefined, results: true};
@@ -66,6 +89,7 @@ class FusekiProxy {
 
     /**
      * Submits a write query to the Fuseki database
+     * 
      * @param {String} query 
      * @returns {Promise<{error:any, results: boolean}>}
      */
@@ -117,7 +141,7 @@ class FusekiProxy {
      * Submit a SPARQL query to the Fuseki database
      * @param {string} query 
      * @param {function(data, resolve, reject)} on_end
-     * @returns {Promise<{headers:[string], data:[any], error}>}
+     * @returns {Promise<{headers: string[], data: any[], error: any}>}
      */
     async read_data(query) {
         const options = {
@@ -187,6 +211,13 @@ class FusekiProxy {
         };
     }
 
+    
+    /**
+     * Check if dataset is defined
+     *
+     * @async
+     * @returns {Promise<boolean>}
+     */
     async _is_dataset_defined() {
         const options = {
             hostname: this.hostname,

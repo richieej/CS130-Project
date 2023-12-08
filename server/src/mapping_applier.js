@@ -39,8 +39,8 @@ class MappingApplier {
     /**
      * Updates the Fuseki database using the table data and mapping queries
      * @param {ExcelTable} table 
-     * @param {String: String} mappings
-     * @returns {Promise<{error: any, results: boolean}[]>}
+     * @param {String} mappings
+     * @returns {Promise<{error: any, results: boolean}>}
      */
     async update_from_table(table, pairs) {
         await this.mapDB.connect();
@@ -48,9 +48,7 @@ class MappingApplier {
         let results = [];
         for (const name of Object.keys(pairs)) {
             const uuid = pairs[name];
-	    //console.log(uuid);
             const mapping = await this.mapDB.get_mapping_by_uuid(uuid);
-            //console.log(mapping);
             if (!mapping)
                 continue;
             const { read_query } = mapping;
