@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: fuseki.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: fuseki.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*
+Fuseki server API wrapper/proxy
+*/
+const http = require('http');
+
+const logger = require('./logger.js');
+
+class FusekiProxy {
+    
+    /**
+     * Creates an instance of FusekiProxy.
+     *
+     * @constructor
+     * @param {string} dataset_name Name of dataset
+     * @param {string} [hostname="localhost"] Domain of hosting site
+     * @param {number} [port=3030]  Port number
+     */
+    constructor(dataset_name, hostname = "localhost", port = 3030) {
+        this.dataset_name = dataset_name;
+        this.hostname = hostname;
+        this.port = port;
+    }
+
+    
+    /**
+     * Tests if connected to Fuseki database
+     *
+     * @async
+     * @returns {boolean}
+     */
+    async test_connection() {
+        const data = await this.read_data(`
+            SELECT ?subject ?predicate ?object
+            WHERE {
+                ?subject ?predicate ?object
+            }
+            LIMIT 1
+        `);
+        if (data)
+            return true;
+        return false;
+    }
+
+    
+    /**
+     * Create a dataset in the Fuseki database
+     *
+     * @async
+     * @returns {Promise&lt;{error: any, results: boolean}>}
+     */
+    async create_dataset() {
+        if (await this._is_dataset_defined())
+            return {error: undefined, results: true};
+
+        const options = {
+            hostname: this.hostname,
+            port: this.port,
+            path: `/$/datasets?dbName=${this.dataset_name}&amp;dbType=tdb`,
+            method: 'POST',
+        }
+
+        return await new Promise((resolve, reject) => {
+            const req = http.request(options, (res) => {
+                if (res.statusCode &lt; 200 || res.statusCode >= 300) {
+                    logger.error(`Fuseki add dataset ended with bad status code: ${res.statusCode}`);
+                    resolve({
+                        error: `Bad status code ${res.statusCode}`,
+                        results: false
+                    });
+                }
+                else{
+                    resolve({
+                        error: undefined,
+                        results: true
+                    });
+                }
+            });
+        
+            // reject on request error
+            req.on('error', err => {
+                resolve({
+                    error: err,
+                    results: false
+                });
+            });
+            req.end();
+        });
+    }
+
+    /**
+     * Submits a write query to the Fuseki database
+     * 
+     * @param {String} query 
+     * @returns {Promise&lt;{error:any, results: boolean}>}
+     */
+    async write_data(query) {
+        const options = {
+            hostname: this.hostname,
+            port: this.port,
+            path: `/${this.dataset_name}/update`,
+            method: 'POST',
+            headers: {
+              'Content-Type': `application/sparql-update`
+            }
+        }
+
+        return await new Promise((resolve, reject) => {
+            const req = http.request(options, (res) => {
+                if (res.statusCode &lt; 200 || res.statusCode >= 300) {
+                    logger.error(`SPARQL write query ended with bad status code: ${res.statusCode}`);
+                    resolve({
+                        error: `Bad status code ${res.statusCode}`,
+                        results: false
+                    });
+                }
+                else{
+                    resolve({
+                        error: undefined,
+                        results: true
+                    });
+                }
+            });
+        
+            // reject on request error
+            req.on('error', err => {
+                resolve({
+                    error: err,
+                    results: false
+                });
+            });
+            if (query) {
+                logger.info(`Starting SPARQL query: '${query}'`);
+                req.write(query);
+            }
+
+            req.end();
+        });
+    }
+
+    /**
+     * Submit a SPARQL query to the Fuseki database
+     * @param {string} query 
+     * @param {function(data, resolve, reject)} on_end
+     * @returns {Promise&lt;{headers: string[], data: any[], error: any}>}
+     */
+    async read_data(query) {
+        const options = {
+            hostname: this.hostname,
+            port: this.port,
+            path: `/${this.dataset_name}/query`,
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': `application/sparql-query`
+            }
+        }
+
+        const data = await new Promise((resolve, reject) => {
+            const req = http.request(options, (res) => {
+                if (res.statusCode &lt; 200 || res.statusCode >= 300) {
+                    logger.error(`SPARQL read query ended with bad status code: ${res.statusCode}`);
+                    resolve({
+                        error: `Bad status code: ${res.statusCode}`
+                    });
+                }
+                else {
+                    var data = [];
+                    res.on('data', chunk => {
+                        data.push(chunk);
+                    });
+                    res.on('end', () => {
+                        const query_result = JSON.parse(data[0]);
+                        logger.info('Finished SPARQL query');
+                        logger.debug(`Got SPARQL response: '${JSON.stringify(query_result)}'`);
+                        resolve(query_result);
+                    });
+                }
+            });
+        
+            // reject on request error
+            req.on('error', err => {
+                resolve({
+                    error: err
+                });
+            });
+            if (query) {
+                logger.info(`Starting SPARQL query: '${query}'`);
+                req.write(query);
+            }
+
+            req.end();
+        });
+
+        const headers = data.head ? data.head.vars : [];
+        const rows = data.results ? data.results.bindings : [];
+        return {
+            headers: headers,
+            data: rows.map((row) => {
+                let obj = {};
+                for (let header of headers) {
+                    if (row[header].type === 'uri')
+                        obj[header] = `&lt;${row[header].value}>`;
+                    else if (row[header].type === 'literal')
+                        obj[header] = `"${row[header].value}"`;
+                    else
+                        obj[header] = row[header].value;
+                }
+                return obj;
+            }),
+            error: data.error
+        };
+    }
+
+    
+    /**
+     * Check if dataset is defined
+     *
+     * @async
+     * @returns {Promise&lt;boolean>}
+     */
+    async _is_dataset_defined() {
+        const options = {
+            hostname: this.hostname,
+            port: this.port,
+            path: `/$/datasets`,
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        }
+
+        const result = await new Promise((resolve, reject) => {
+            const req = http.request(options, (res) => {
+                if (res.statusCode &lt; 200 || res.statusCode >= 300) {
+                    logger.error(`Fuseki get datasets ended with bad status code: ${res.statusCode}`);
+                    resolve({
+                        error: `Bad status code: ${res.statusCode}`
+                    });
+                }
+                else {
+                    var data = [];
+                    res.on('data', chunk => {
+                        data.push(chunk);
+                    });
+                    res.on('end', () => {
+                        const query_result = JSON.parse(data[0]);
+                        logger.debug(`Got dataset response: '${JSON.stringify(query_result)}'`);
+                        resolve(query_result);
+                    });
+                }
+            });
+        
+            // reject on request error
+            req.on('error', err => {
+                resolve({
+                    error: err
+                });
+            });
+            req.end();
+        });
+
+        const datasets = result.error ? [] : result.datasets;
+        for (const dataset of datasets) {
+            if (dataset['ds.name'] == `/${this.dataset_name}`)
+                return true;
+        }
+        return false;
+    }
+}
+
+module.exports = { FusekiProxy }</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="FusekiProxy.html">FusekiProxy</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Thu Dec 07 2023 16:35:46 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
